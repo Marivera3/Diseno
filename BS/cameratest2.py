@@ -10,9 +10,10 @@ cv.namedWindow("Camera") # Creates a window
 cv.namedWindow("Motion Detection")
 
 # select the model of BS
-backSub = cv.createBackgroundSubtractorMOG2()
+backSub = cv.createBackgroundSubtractorMOG2() # Parameters: history, varThreshold, bShadowDetection
 # backSub = cv.createBackgroundSubtractorKNN()
 vc = cv.VideoCapture(0)
+
 
 if vc.isOpened(): # try to get the first frame
     rval, frame = vc.read()
@@ -22,7 +23,7 @@ else:
 while rval:
     rval, frame = vc.read()
 
-    fgmask = backSub.apply(frame, None, 0.01)
+    fgmask = backSub.apply(frame, None, -1)
 
     if detectmov:
         # mov: Treu if movement is detected; nomd: number of motion detected
