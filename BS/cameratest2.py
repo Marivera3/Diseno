@@ -2,8 +2,12 @@
 
 import cv2 as cv
 import numpy as np
+from showmotion import showmotion
+
+detectmov = True
 
 cv.namedWindow("Camera") # Creates a window
+cv.namedWindow("Motion Detection")
 
 # select the model of BS
 backSub = cv.createBackgroundSubtractorMOG2()
@@ -18,8 +22,11 @@ else:
 while rval:
     rval, frame = vc.read()
 
-    fgMask = backSub.apply(frame)
-    print(fgMask.shape)
+    fgmask = backSub.apply(frame, None, 0.01)
+
+    if detectmov:
+        # mov: Treu if movement is detected; nomd: number of motion detected
+        frame, mov = showmotion(fgmask.copy(), frame)
 
     #cv.rectangle(frame, (10, 2), (100,20), (255,255,255), -1)
     #cv.putText(frame, str(vc.get(cv.CAP_PROP_POS_FRAMES)), (15, 15),
@@ -27,7 +34,7 @@ while rval:
 
 
     cv.imshow('Camera', frame)
-    cv.imshow('Motion Detection', fgMask)
+    cv.imshow('Motion Detection', fgmask)
 
     key = cv.waitKey(20)
     if key == ord('q') or key == 27: # exit on ESC or q
