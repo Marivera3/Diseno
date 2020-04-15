@@ -10,7 +10,7 @@ cv.namedWindow("Camera") # Creates a window
 cv.namedWindow("Motion Detection")
 
 # select the model of BS
-backSub = cv.createBackgroundSubtractorMOG2() # Parameters: history, varThreshold, bShadowDetection
+backSub = cv.createBackgroundSubtractorMOG2(history=10) # Parameters: history, varThreshold, bShadowDetection
 # backSub = cv.createBackgroundSubtractorKNN()
 vc = cv.VideoCapture(0)
 
