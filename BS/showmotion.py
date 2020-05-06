@@ -13,7 +13,6 @@ def showmotion(fgmask, frame, square = True):
     except: hierarchy = []
 
 
-
     best_id = 0;
 
     for contour, hier in zip(contours, hierarchy):
@@ -26,4 +25,4 @@ def showmotion(fgmask, frame, square = True):
                 cv.putText(frame, str(best_id), (x,y-5), cv.FONT_HERSHEY_SIMPLEX,
                     0.5, (255, 0, 0), 2)
 
-    return frame, (len(hierarchy) > 0)#, best_id 
+    return frame, (len(hierarchy) > 0)#, best_id
