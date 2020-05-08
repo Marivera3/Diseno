@@ -19,3 +19,9 @@ https://github.com/Itseez/opencv/tree/master/data/haarcascades
 Some usefull information of the HaarCascade:
 https://www.researchgate.net/publication/3940582_Rapid_Object_Detection_using_a_Boosted_Cascade_of_Simple_Features
 https://docs.opencv.org/4.0.0/d7/d8b/tutorial_py_face_detection.html
+
+
+
+In the folder FacialDetection is an optimized code. Here we use an OpenCV’s deep learning face detector,based on the Single Shot Detector (SSD) framework with a ResNet base network. Implemented in Caffe.
+
+
