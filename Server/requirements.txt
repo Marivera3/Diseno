@@ -1,0 +1,4 @@
+mongoengine
+datetime
+numpy
+matplotlib
