@@ -1,0 +1,10 @@
+Hola
+
+Se ha detectado una persona no identificada, se adjunta una imagen para reconocimiento.
+
+Si desea agregar a la persona a la base de datos responda este mail utilizando la plantilla proporcionada.
+Se pide nombre, apellido, y si esta inscrito (BD:1) o no (BD:0) en la base de datos.
+Es necesario copiar la plantilla completa.
+
+ Plantilla:
+ [Nombre: , Apellido: , BD:, ID:{id}];
