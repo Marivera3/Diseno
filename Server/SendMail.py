@@ -3,6 +3,7 @@ import smtplib
 import ssl
 import getpass
 import email
+from pymongo import MongoClient
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -12,7 +13,7 @@ from email.mime.text import MIMEText
 class SendMail(threading.Thread):
 
 
-    def __init__(self, user, password, receiver, id):
+    def __init__(self, user, password, receiver, id, col):
         super().__init__()
         self.user           = user
         self.__pass         = password
@@ -24,7 +25,7 @@ class SendMail(threading.Thread):
         self.message        = None
         self.smtp_server    = "smtp.gmail.com"
         self.port           = 465
-
+        self.collection     = col
 
     def setcontent(self, file):
         with open("content.txt", "r", encoding='utf-8') as f:
@@ -72,8 +73,21 @@ class SendMail(threading.Thread):
         with smtplib.SMTP_SSL(self.smtp_server, self.port, context=context) as server:
             server.login(self.user, self.__pass)
             server.sendmail(self.user, self.receiver_email, self.message.as_string())
-
+            if server.noop()[0] == 250:
+                x = self.setmailsent()
+                print(f'Mail sent...')
+                print(x.modified_count, "documents updated.")
 
     def run(self):
 
         self.connect()
+
+
+    def setmailsent(self):
+            myquery = {"idrasp": self.id}
+            newvalues = {"$set": {
+                                 "mail_sent": True,
+                                 "waiting_response": True
+                                 }}
+            x = self.collection.update_one(myquery, newvalues)
+            return x
