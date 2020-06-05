@@ -12,16 +12,12 @@ import mongoengine as me
 import numpy
 import matplotlib.pyplot as plt
 
-
-
-
-
 user = 'disenouc20g14@gmail.com'
 # password = getpass.getpass()
 password = 'DisenoUCg14'
 
 # admin
-receiver_email = 'max.rivera.figueroa@gmail.com'
+receiver_email = 'agustincampeny@gmail.com'
 
 # Connection to mongoengine
 me.connect('test1')
@@ -34,6 +30,7 @@ col = db.person_rasp
 receive = ReceiveMail(user=user, password=password, time=1)
 receive.start()
 
+# Add person to database. Return id
 def addperson2db(emb, rgb, rec=False, lh=0):
     # name is
     idh = hashlib.sha256(str(time.time()).encode()).hexdigest()
@@ -46,18 +43,20 @@ def addperson2db(emb, rgb, rec=False, lh=0):
     mail1.start()
     return idh
 
-# data = pickle.loads(open('imagen.pickle', "rb").read())
-# addperson2db(emb = '', rgb=data, rec=False, lh=0.0)
+if __name__ == "__main__":
 
-c = 0
-while True:
-    c += 1
-    time.sleep(1)
-    if len(receive.list_msg) > 0:
-        for i in receive.list_msg:
-            print(f'RX = Name: {i.name}, Surname: {i.surname}, BD: {i.bd}, ID: {i.id}')
+    data = pickle.loads(open('imagen.pickle', "rb").read())
+    addperson2db(emb = '', rgb=data, rec=False, lh=0.0)
 
-        receive.clear_msg()
-    if c == 60:
-        receive.disconnectserver()
-        break
+    c = 0
+    while True:
+        c += 1
+        time.sleep(1)
+        if len(receive.list_msg) > 0:
+            for i in receive.list_msg:
+                print(f'RX = Name: {i.name}, Surname: {i.surname}, BD: {i.bd}, ID: {i.id}')
+
+            receive.clear_msg()
+        if c == 60:
+            receive.disconnectserver()
+            break
