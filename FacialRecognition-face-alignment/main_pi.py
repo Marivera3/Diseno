@@ -13,7 +13,7 @@ import pickle
 import time
 from imutils.video import VideoStream
 from imutils.video import FPS
-from functions_v2 import acquire_frame, draw_frame, show_frame, train
+from functions_v3 import acquire_frame, draw_frame, show_frame, train
 
 # PARAMETERS
 
