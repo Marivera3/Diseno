@@ -37,11 +37,12 @@ def get_faces(detector, embedder, frame, d_conf):
     indexes = np.where(detections[0, 0, :, 2] > d_conf)[0]
     # This line gets all the index where detections has greater confidence than d_conf
 
+    boxes = detections[0, 0, indexes, 3:7] * size_array
+    coords = boxes.astype("int")
+
     for i in indexes:
 
-        box = detections[0, 0, i, 3:7] * size_array
-        coords = box.astype("int")
-        (startX, startY, endX, endY) = coords
+        (startX, startY, endX, endY) = coords[i]
 
         face = frame[startY:endY, startX:endX]
         (fH, fW) = face.shape[:2]
@@ -54,7 +55,7 @@ def get_faces(detector, embedder, frame, d_conf):
         embedder.setInput(faceBlob)
         vec = embedder.forward()
 
-        out_faces.append((face, vec, coords))
+        out_faces.append((face, vec, coords[i]))
 
     # frame, [(face, vector, coordinate),...]
     return out_faces
