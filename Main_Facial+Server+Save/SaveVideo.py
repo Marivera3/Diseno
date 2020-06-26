@@ -2,8 +2,6 @@ import threading
 import cv2
 import datetime
 from subprocess import Popen, PIPE
-from User.Frames import FramesVideo
-
 
 class SaveVideo(threading.Thread):
 

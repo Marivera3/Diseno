@@ -44,27 +44,20 @@ def get_faces(detector, embedder, frame, d_conf, facealigner):
     coords = boxes.astype("int")
 
     for i in indexes:
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
         (startX, startY, endX, endY) = coords[i]
-
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
        # face = frame[startY:endY, startX:endX]
        # (fH, fW) = face.shape[:2]
-
         rect = dlib.rectangle(startX, startY, endX, endY)
-        faceAligned = fa.align(frame, gray, rect)
-	(fH, fW) = faceAligned.shape[:2]
-			
-
+        faceAligned = facealigner.align(frame, gray, rect)
+        (fH, fW) = faceAligned.shape[:2]
         if fW < 20 or fH < 20:
             continue
-
-        faceBlob = cv2.dnn.blobFromImage(face, 1.0 / 255
-            ,(96, 96), (0, 0, 0), swapRB=True, crop=False)
+        faceBlob = cv2.dnn.blobFromImage(faceAligned, 1.0 / 
+            255,(96, 96), (0, 0, 0), swapRB=True, crop=False)
         embedder.setInput(faceBlob)
         vec = embedder.forward()
-
-        out_faces.append((face, vec, coords[i]))
+        out_faces.append((faceAligned, vec, coords[i]))
 
     # frame, [(face, vector, coordinate),...]
     return out_faces

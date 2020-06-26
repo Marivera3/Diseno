@@ -3,6 +3,14 @@
 # Diseño Eléctrico - Grupo 14                                                 #
 ###############################################################################
 
+'''
+python3 main_pi_v3.py --detector face_detection_model \
+--embeddings output/embeddings.pickle \
+--embedding-model openface_nn4.small2.v1.t7 \
+--confidence 0.5 \
+--shape-predictor shape_predictor_68_face_landmarks.dat
+'''
+
 import json
 import threading
 import datetime
@@ -12,6 +20,7 @@ import os
 import pickle
 import time
 import sys
+import dlib
 import numpy as np
 import mongoengine as me
 from subprocess import Popen, PIPE
@@ -73,10 +82,10 @@ pathIn= './SavedImages/13/'
 ## REVISAR SI HAY UN FORMATO QUE SEA MAS COMPRIMIMDO
 pathOut = 'video_v1.avi'
 fps = 25
-SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
+#SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
 
-print('[INFO] Starting saving Video...')
-SV.start()
+#print('[INFO] Starting saving Video...')
+#SV.start()
 
 # cpt=0;
 while True:
