@@ -2,6 +2,7 @@
 import threading
 import cv2 as cv
 import imutils
+from imutils.video import FPS
 
 class VideoGet(threading.Thread):
 
@@ -9,7 +10,7 @@ class VideoGet(threading.Thread):
         super().__init__(name=name)
         self.stream = cv.VideoCapture(src)
         (self.rval, self.frame) = self.stream.read()
-
+        self.fps = FPS().start()
         self.stopped = False
 
 
@@ -19,10 +20,14 @@ class VideoGet(threading.Thread):
         while not self.stopped:
             if self.rval:
                 (self.rval, self.frame) = self.stream.read()
+                self.fps.update()
             else:
                 self.stop()
 
     def stop(self):
+        self.fps.stop()
+        print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
+        print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
 
         self.stopped = True
         self.rval = False

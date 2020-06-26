@@ -7,7 +7,7 @@
 python3 main_pi_v3.py --detector face_detection_model \
 --embeddings output/embeddings.pickle \
 --embedding-model openface_nn4.small2.v1.t7 \
---confidence 0.5 
+--confidence 0.5
 
 \
 --shape-predictor shape_predictor_68_face_landmarks.dat
@@ -36,6 +36,7 @@ from functions_v4 import acquire_frame, draw_frame, show_frame, train
 from VideoGet import VideoGet
 from SaveVideo import SaveVideo
 from User.User import PersonRasp
+from imutils.video import FPS
 
 
 
@@ -126,6 +127,7 @@ fps = 25
 #SV.start()
 
 # cpt=0;
+fps_count = FPS().start()
 while True:
     # main_loop()
 
@@ -147,6 +149,7 @@ while True:
                         picture='', likehood=item[4])
 
         frame = draw_frame(frame, item)
+        fps_count.update()
     exitbool = show_frame(frame)
 
 
@@ -154,6 +157,9 @@ while True:
 
     if exitbool:
         # SV.stop()
+        fps_count.stop()
+        print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
+        print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
         time.sleep(1)
         video_getter.stop()
         # db_client.close()
