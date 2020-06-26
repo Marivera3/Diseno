@@ -16,6 +16,7 @@ import numpy as np
 import mongoengine as me
 from subprocess import Popen, PIPE
 from PIL import Image
+from imutils.face_utils import FaceAligner
 from functions_v4 import acquire_frame, draw_frame, show_frame, train
 from VideoGet import VideoGet
 from SaveVideo import SaveVideo
@@ -33,6 +34,8 @@ ap.add_argument("-m", "--embedding-model", required=True,
                 help="path to OpenCV's deep learning face embedding model")
 ap.add_argument("-c", "--confidence", type=float, default=0.5,
                 help="minimum probability to filter weak detections")
+ap.add_argument("-p", "--shape-predictor", required=True,
+	            help="path to facial landmark predictor")
 args = vars(ap.parse_args())
 
 # load our serialized face detector from disk
@@ -42,6 +45,8 @@ modelPath = os.path.sep.join([args["detector"],
                               "res10_300x300_ssd_iter_140000.caffemodel"])
 detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
+predictor = dlib.shape_predictor(args["shape_predictor"])
+fa = FaceAligner(predictor, desiredFaceWidth=256)
 # load our serialized face embedding model from disk
 print("[INFO] loading face recognizer...")
 embedder = cv2.dnn.readNetFromTorch(args["embedding_model"])
@@ -117,7 +122,7 @@ while True:
 
     frame = video_getter.frame.copy()
 
-    face_data = acquire_frame(detector, embedder, frame , recognizer, le, 0.5, 0.65)
+    face_data = acquire_frame(detector, embedder, frame , recognizer, le, 0.5, 0.65,fa)
 
     for item in face_data:
         frame = draw_frame(frame, item)
@@ -127,7 +132,6 @@ while True:
 
     if exitbool:
         # SV.stop()
-        process.stdin.close()
         time.sleep(1)
         video_getter.stop()
         # db_client.close()
