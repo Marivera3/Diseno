@@ -17,18 +17,40 @@ import datetime
 import cv2
 import argparse
 import os
+import hashlib
+import io
 import pickle
+import codecs
 import time
 import sys
 import dlib
 import numpy as np
 import mongoengine as me
+from pymongo import MongoClient
 from subprocess import Popen, PIPE
 from PIL import Image
 from imutils.face_utils import FaceAligner
 from functions_v4 import acquire_frame, draw_frame, show_frame, train
 from VideoGet import VideoGet
 from SaveVideo import SaveVideo
+from User.User import PersonRasp
+
+
+
+def addperson2db(name, surname, is_recongized, last_in, last_out, picture, likehood):
+    idh = hashlib.sha256(str(time.time()).encode()).hexdigest()
+    if last_out == "":
+
+        #PersonRasp(idrasp=idh,name=name, surname=surname, last_out=last_out,is_recognized=is_recongized, likelihood=likehood).save()
+
+        if is_recongized:
+            PersonRasp(idrasp= idh,name=name, surname=surname, last_in=last_in,
+                        is_recognized=is_recongized, likelihood=likehood).save()
+
+        else:
+            PersonRasp(idrasp= idh,name=name, surname=surname, last_in=last_in,
+                        is_recognized=is_recongized, likelihood=likehood,
+                        picture=picture).save()
 
 
 # PARAMETERS
@@ -68,6 +90,18 @@ recognizer, le = train(data)
 
 ## INICIO ##
 
+## Connect to DBs
+# Connection to mongoengine DB Rasp
+print('[INFO] Connecting to DB mongoengine')
+me.connect('person_rasp', host='mongodb://grupo14.duckdns.org:1226/Rasp')
+# Connect to pymongo
+# mongo_client_Rasp = MongoClient('mongodb://grupo14.duckdns.org:1226')
+# db_Rasp = mongo_client_Rasp["Test1"]
+# col_Rasp = db_Rasp["person"]
+# print(f"[INFO] Conecting to DB Rasp with:{col_Rasp.read_preference}...")
+
+time.sleep(1.0)
+
 # initialize the video stream, then allow the camera sensor to warm up
 
 ## Set Threding to start filming
@@ -95,9 +129,25 @@ while True:
 
     face_data = acquire_frame(detector, embedder, frame , recognizer, le, 0.5, 0.65,fa)
 
+
+
+
     for item in face_data:
+        if item[3] == 'unknown':
+            pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
+            addperson2db(name='', surname='', is_recongized=False,
+                        last_in=dt.datetime.utcnow(), last_out='',
+                        picture=pickled, likehood=0)
+        else:
+            separador = item[3].index("_")
+            addperson2db(name=item[3][0:separador],
+                        surname=item[3][separador+1:-1], is_recongized=True,
+                        last_in=dt.datetime.utcnow(), last_out='',
+                        picture='', likehood=item[4])
+
         frame = draw_frame(frame, item)
     exitbool = show_frame(frame)
+
 
 
 
