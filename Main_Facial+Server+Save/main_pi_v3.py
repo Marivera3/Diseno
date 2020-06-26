@@ -25,6 +25,7 @@ import pickle
 import codecs
 import time
 import sys
+from multiprocessing import Process, Queue, Manager
 #import dlib
 import numpy as np
 import mongoengine as me
@@ -36,6 +37,7 @@ from functions_v4 import acquire_frame, draw_frame, show_frame, train
 from VideoGet import VideoGet
 from SaveVideo import SaveVideo
 from User.User import PersonRasp
+from FrameProcessing import FrameProcessing
 from imutils.video import FPS
 
 
@@ -98,7 +100,7 @@ recognizer, le = train(data)
 print('[INFO] Connecting to DB mongoengine')
 #me.connect('person_rasp', host='mongodb://grupo14.duckdns.org:1226/Rasp')
 #me.connect(host='mongodb://192.168.0.25:27017/Rasp', replicaset='rsdiseno')
-me.connect('Rasp')
+#me.connect('Rasp')
 # Connect to pymongo
 # mongo_client_Rasp = MongoClient('mongodb://grupo14.duckdns.org:1226')
 # db_Rasp = mongo_client_Rasp["Test1"]
@@ -109,11 +111,18 @@ time.sleep(1.0)
 
 # initialize the video stream, then allow the camera sensor to warm up
 
-## Set Threding to start filming
+## Start processes
+
 video_getter = VideoGet(src=0, name='Video Getter')
-time.sleep(1.0)
-# print('[INFO] Starting VideoGet...')
+
+#workers = [FrameProcessing(i, q_video, q_frame, detector, embedder, recognizer, le) for i in range(1, 3)]
+
 video_getter.start()
+
+#for item in workers:
+#    item.start()
+
+# print('[INFO] Starting VideoGet...')
 time.sleep(3.0)
 
 ## Set ffmeg instance
@@ -126,41 +135,41 @@ fps = 25
 #print('[INFO] Starting saving Video...')
 #SV.start()
 
-# cpt=0;
+cpt=0;
 fps_count = FPS().start()
 while True:
-    # main_loop()
-
     frame = video_getter.frame.copy()
 
     face_data = acquire_frame(detector, embedder, frame , recognizer, le, 0.5, 0.65)#,fa)
 
     for item in face_data:
-        if item[3] == 'unknown':
-            pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
-            addperson2db(name='', surname='', is_recongized=False,
-                        last_in=dt.datetime.utcnow(), last_out='',
-                        picture=pickled, likehood=0)
-        else:
-            separador = item[3].index("_")
-            addperson2db(name=item[3][0:separador],
-                        surname=item[3][separador+1:-1], is_recongized=True,
-                        last_in=dt.datetime.utcnow(), last_out='',
-                        picture='', likehood=item[4])
+        print(item[3])
+#       if item[3] == 'unknown':
+#           pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
+#           addperson2db(name='', surname='', is_recongized=False,
+#                       last_in=dt.datetime.utcnow(), last_out='',
+#                       picture=pickled, likehood=0)
+#       else:
+#           separador = item[3].index("_")
+#           addperson2db(name=item[3][0:separador],
+#                       surname=item[3][separador+1:-1], is_recongized=True,
+#                       last_in=dt.datetime.utcnow(), last_out='',
+#                       picture='', likehood=item[4])
 
-        frame = draw_frame(frame, item)
-        fps_count.update()
+#   frame = draw_frame(frame, item)
+    fps_count.update()
+    cpt += 1
+    if cpt > 200:
+        video_getter.stop()
+        break
     exitbool = show_frame(frame)
 
-
-
-
-    if exitbool:
-        # SV.stop()
-        fps_count.stop()
-        print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
-        print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
-        time.sleep(1)
-        video_getter.stop()
-        # db_client.close()
-        break
+#   if exitbool:
+#       # SV.stop()
+#       fps_count.stop()
+#       print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
+#       print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
+#       time.sleep(1)
+#       video_getter.stop()
+#       # db_client.close()
+#       break

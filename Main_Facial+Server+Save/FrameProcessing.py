@@ -5,7 +5,7 @@ from queue import Queue
 
 class FrameProcessing(threading.Thread):
 
-    def __init__(self, name='frame processing', queue_video, queue_frame, detector, embedder, frame , recognizer, le):
+    def __init__(self, name, queue_video, queue_frame, detector, embedder, recognizer, le):
         super().__init__(name=name)
         self.queue_video    = queue_video
         self.stopped        = False
@@ -13,7 +13,6 @@ class FrameProcessing(threading.Thread):
         self.queue_frames   = queue_frame
         self.detector       = detector
         self.embedder       = embedder
-        self.frame          = frame
         self.recognizer     = recognizer
         self.le             = le
 
