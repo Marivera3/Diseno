@@ -90,67 +90,6 @@ def db_retrieve():
     '''
     pass
 
-def main_loop():
-
-    frame, face_data = acquire_frame(detector, embedder, vs, recognizer, le,
-            0.5, 0.65)
-    for item in face_data:
-        frame = draw_frame(frame, item)
-    show_frame(frame)
-
-
-
-## K meas 4 image reduction
-
-def initialize_K_centroids(X, K):
-    """ Choose K points from X at random """
-    m = len(X)
-    return X[np.random.choice(m, K, replace=False), :]
-
-def find_closest_centroids(X, centroids):
-    m = len(X)
-    c = np.zeros(m)
-    for i in range(m):
-        # Find distances
-        distances = np.linalg.norm(X[i] - centroids, axis=1)
-
-        # Assign closest cluster to c[i]
-        c[i] = np.argmin(distances)
-
-    return c
-
-def compute_means(X, idx, K):
-    _, n = X.shape
-    centroids = np.zeros((K, n))
-    for k in range(K):
-        examples = X[np.where(idx == k)]
-        mean = [np.mean(column) for column in examples.T]
-        centroids[k] = mean
-    return centroids
-
-def find_k_means(X, K, max_iters=10):
-    centroids = initialize_K_centroids(X, K)
-    previous_centroids = centroids
-    for _ in range(max_iters):
-        idx = find_closest_centroids(X, centroids)
-        centroids = compute_means(X, idx, K)
-        if (centroids == previous_centroids).all():
-            # The centroids aren't moving anymore.
-            return centroids
-        else:
-            previous_centroids = centroids
-
-    return centroids, idx
-
-def applyKKmean(frame, K=20, maxiters=20):
-    X = frame.reshape((640*480, 3))
-    colors, _ = find_k_means(X, K, max_iters=maxiters)
-    idx = find_closest_centroids(X, colors)
-    idx = np.array(idx, dtype=np.uint8)
-    X_reconstructed = np.array(colors[idx, :] * 255, dtype=np.uint8).reshape((640,480, 3))
-    compressed_image = Image.fromarray(X_reconstructed)
-    return compressed_image
-
 ## INICIO ##
 
 # initialize the video stream, then allow the camera sensor to warm up
@@ -165,51 +104,25 @@ time.sleep(3.0)
 ## Set ffmeg instance
 pathIn= './SavedImages/13/'
 ## REVISAR SI HAY UN FORMATO QUE SEA MAS COMPRIMIMDO
-pathOut = 'video_pip_v13.avi'
+pathOut = 'video_v1.avi'
 fps = 25
-# SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
-# time.sleep(1.0)
-# ## Starting saving video
-# decode:jpeg2000,
-# encode: mpeg4
-process = Popen(['ffmpeg','-y', '-f', 'image2pipe','-vcodec', 'mjpeg',
-                '-use_wallclock_as_timestamps', '1', '-loglevel', 'error',
-                '-i', '-', '-vcodec', 'mpeg4', '-pix_fmt', 'yuv420p',
-                '-r', str(fps), pathIn+pathOut], stdin=PIPE)
+SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
+
 print('[INFO] Starting saving Video...')
-# SV.start()
-# encode_param = [cv2.IMWRITE_JPEG_QUALITY, 95]
+SV.start()
+
 # cpt=0;
 while True:
     # main_loop()
 
     frame = video_getter.frame.copy()
 
-    ## Caso 1
-    data = cv2.imencode('.jpg', frame, encode_param)[1].tostring()
-    process.stdin.write(data)
-    # print(f'data:{data}')
-    # print(f'Size: {np.shape(data)}')
-    # print(f'Max: {np.max(data)}')
-    # print(f'Min: {np.min(data)}')
-    # FramesVideo(frame=Binary(data, subtype=128 )).save()
+    face_data = acquire_frame(detector, embedder, frame , recognizer, le, 0.5, 0.65)
 
-    ## Caso 2
-
-    # cv2.imwrite(os.path.join('SavedImages/17', f'Hour:{datetime.datetime.utcnow()}.jpg'), frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
-
-    ## Caso 3
-
-
-
-
-    # face_data = acquire_frame(detector, embedder, frame , recognizer, le,
-    #         0.5, 0.65)
-    #
-    # for item in face_data:
-    #     frame = draw_frame(frame, item)
+    for item in face_data:
+        frame = draw_frame(frame, item)
     exitbool = show_frame(frame)
-    #frame2save = applyKKmean(frame, K=20, maxiters=20);
+
 
 
     if exitbool:
