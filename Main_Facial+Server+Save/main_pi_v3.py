@@ -71,7 +71,7 @@ recognizer, le = train(data)
 # initialize the video stream, then allow the camera sensor to warm up
 
 ## Set Threding to start filming
-video_getter = VideoGet(src=0, name='Video Getter')
+video_getter = VideoGet(src=1, name='Video Getter')
 time.sleep(1.0)
 # print('[INFO] Starting VideoGet...')
 video_getter.start()
