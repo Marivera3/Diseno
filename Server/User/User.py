@@ -47,8 +47,3 @@ class RegisteredUser(me.Document):
 
 
 
-class Frames(me.Document):
-
-    created_at          = me.DateTimeField(default=datetime.datetime.utcnow)
-    frames              = me.StringField()
-    duration            = me.StringField(default = '1') % Put here the default fps that we have    

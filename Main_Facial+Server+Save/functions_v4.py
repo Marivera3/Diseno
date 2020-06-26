@@ -3,6 +3,8 @@
 python3 functions.py --detector face_detection_model \
 --embedding-model openface_nn4.small2.v1.t7 \
 --embeddings output/embeddings.pickle \
+
+
 --shape-predictor shape_predictor_68_face_landmarks.dat
 '''
 
@@ -17,12 +19,12 @@ import argparse
 import imutils
 import pickle
 import time
-import dlib
+#import dlib
 import cv2
 import os
 
 
-def get_faces(detector, embedder, frame, d_conf, facealigner):
+def get_faces(detector, embedder, frame, d_conf):#, facealigner):
     out_faces = []
 
     # frame = vs.read()
@@ -45,19 +47,19 @@ def get_faces(detector, embedder, frame, d_conf, facealigner):
 
     for i in indexes:
         (startX, startY, endX, endY) = coords[i]
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-       # face = frame[startY:endY, startX:endX]
-       # (fH, fW) = face.shape[:2]
-        rect = dlib.rectangle(startX, startY, endX, endY)
-        faceAligned = facealigner.align(frame, gray, rect)
-        (fH, fW) = faceAligned.shape[:2]
+#        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        face = frame[startY:endY, startX:endX]
+        (fH, fW) = face.shape[:2]
+       # rect = dlib.rectangle(startX, startY, endX, endY)
+       # faceAligned = facealigner.align(frame, gray, rect)
+        (fH, fW) = face.shape[:2]
         if fW < 20 or fH < 20:
             continue
-        faceBlob = cv2.dnn.blobFromImage(faceAligned, 1.0 / 
+        faceBlob = cv2.dnn.blobFromImage(face, 1.0 / 
             255,(96, 96), (0, 0, 0), swapRB=True, crop=False)
         embedder.setInput(faceBlob)
         vec = embedder.forward()
-        out_faces.append((faceAligned, vec, coords[i]))
+        out_faces.append((face, vec, coords[i]))
 
     # frame, [(face, vector, coordinate),...]
     return out_faces
@@ -76,10 +78,10 @@ def recognize(vec, recognizer, le, r_conf=0.65):
     return name, proba
 
 
-def acquire_frame(detector, embedder, frame, recognizer, le, d_conf, r_conf,faceA):
+def acquire_frame(detector, embedder, frame, recognizer, le, d_conf, r_conf):#,faceA):
     # data = []
     # data = (face, vector, coords, name, proba), ...
-    out_faces = get_faces(detector, embedder, frame, d_conf,faceA)
+    out_faces = get_faces(detector, embedder, frame, d_conf)#,faceA)
     # names = [recognize(item[1], recognizer, le) for item in out_faces]
     # for face in out_faces:
         # item = (*face, *recognize(face[1], recognizer, le, r_conf))
