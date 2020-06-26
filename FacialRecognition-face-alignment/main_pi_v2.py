@@ -13,6 +13,7 @@ import pickle
 import time
 from imutils.video import VideoStream
 from imutils.video import FPS
+from imutils.face_utils import FaceAligner
 from functions_v4 import acquire_frame, draw_frame, show_frame, train
 from VideoGet import VideoGet
 from VideoShow import VideoShow
@@ -28,6 +29,8 @@ ap.add_argument("-m", "--embedding-model", required=True,
                 help="path to OpenCV's deep learning face embedding model")
 ap.add_argument("-c", "--confidence", type=float, default=0.5,
                 help="minimum probability to filter weak detections")
+ap.add_argument("-p", "--shape-predictor", required=True,
+	            help="path to facial landmark predictor")
 args = vars(ap.parse_args())
 
 # load our serialized face detector from disk
@@ -36,6 +39,9 @@ protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
 modelPath = os.path.sep.join([args["detector"],
                               "res10_300x300_ssd_iter_140000.caffemodel"])
 detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
+
+predictor = dlib.shape_predictor(args["shape_predictor"])
+fa = FaceAligner(predictor, desiredFaceWidth=256)
 
 # load our serialized face embedding model from disk
 print("[INFO] loading face recognizer...")
@@ -108,7 +114,7 @@ while True:
 
     frame = video_getter.frame
     face_data = acquire_frame(detector, embedder, frame , recognizer, le,
-            0.5, 0.65)
+            0.5, 0.65,fa)
 
     for item in face_data:
         frame = draw_frame(frame, item)

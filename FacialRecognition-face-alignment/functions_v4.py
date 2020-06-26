@@ -2,10 +2,12 @@
 '''
 python3 functions.py --detector face_detection_model \
 --embedding-model openface_nn4.small2.v1.t7 \
---embeddings output/embeddings.pickle
+--embeddings output/embeddings.pickle \
+--shape-predictor shape_predictor_68_face_landmarks.dat
 '''
 
 # import the necessary packages
+from imutils.face_utils import FaceAligner
 from imutils.video import VideoStream
 from imutils.video import FPS
 from sklearn.preprocessing import LabelEncoder
@@ -15,11 +17,12 @@ import argparse
 import imutils
 import pickle
 import time
+import dlib
 import cv2
 import os
 
 
-def get_faces(detector, embedder, frame, d_conf):
+def get_faces(detector, embedder, frame, d_conf, facealigner):
     out_faces = []
 
     # frame = vs.read()
@@ -41,11 +44,17 @@ def get_faces(detector, embedder, frame, d_conf):
     coords = boxes.astype("int")
 
     for i in indexes:
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         (startX, startY, endX, endY) = coords[i]
 
-        face = frame[startY:endY, startX:endX]
-        (fH, fW) = face.shape[:2]
+       # face = frame[startY:endY, startX:endX]
+       # (fH, fW) = face.shape[:2]
+
+        rect = dlib.rectangle(startX, startY, endX, endY)
+        faceAligned = fa.align(frame, gray, rect)
+	(fH, fW) = faceAligned.shape[:2]
+			
 
         if fW < 20 or fH < 20:
             continue
@@ -74,10 +83,10 @@ def recognize(vec, recognizer, le, r_conf=0.65):
     return name, proba
 
 
-def acquire_frame(detector, embedder, frame, recognizer, le, d_conf, r_conf):
+def acquire_frame(detector, embedder, frame, recognizer, le, d_conf, r_conf,faceA):
     # data = []
     # data = (face, vector, coords, name, proba), ...
-    out_faces = get_faces(detector, embedder, frame, d_conf)
+    out_faces = get_faces(detector, embedder, frame, d_conf,faceA)
     # names = [recognize(item[1], recognizer, le) for item in out_faces]
     # for face in out_faces:
         # item = (*face, *recognize(face[1], recognizer, le, r_conf))
@@ -150,6 +159,8 @@ if __name__ == '__main__':
                     help="path to OpenCV's deep learning face embedding model")
     ap.add_argument("-c", "--confidence", type=float, default=0.5,
                     help="minimum probability to filter weak detections")
+    ap.add_argument("-p", "--shape-predictor", required=True,
+	            help="path to facial landmark predictor")
     args = vars(ap.parse_args())
 
     # load our serialized face detector from disk
@@ -158,6 +169,8 @@ if __name__ == '__main__':
     modelPath = os.path.sep.join([args["detector"],
                                   "res10_300x300_ssd_iter_140000.caffemodel"])
     detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
+    predictor = dlib.shape_predictor(args["shape_predictor"])
+    fa = FaceAligner(predictor, desiredFaceWidth=256)
 
     # load our serialized face embedding model from disk
     print("[INFO] loading face recognizer...")
@@ -180,7 +193,7 @@ if __name__ == '__main__':
     counter_unknown = 1
     while True:
         # output = rec_frame(detector, embedder, recognizer, le, vs)
-        frame, face_data = acquire_frame(detector, embedder, vs, recognizer, le)
+        frame, face_data = acquire_frame(detector, embedder, vs, recognizer, le,fa)
         for item in face_data:
             frame = draw_frame(frame, item)
         show_frame(frame)
