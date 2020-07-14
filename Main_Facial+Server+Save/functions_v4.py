@@ -20,6 +20,7 @@ import imutils
 import pickle
 import time
 #import dlib
+import datetime as dt
 import cv2
 import os
 
@@ -55,7 +56,7 @@ def get_faces(detector, embedder, frame, d_conf):#, facealigner):
         (fH, fW) = face.shape[:2]
         if fW < 20 or fH < 20:
             continue
-        faceBlob = cv2.dnn.blobFromImage(face, 1.0 / 
+        faceBlob = cv2.dnn.blobFromImage(face, 1.0 /
             255,(96, 96), (0, 0, 0), swapRB=True, crop=False)
         embedder.setInput(faceBlob)
         vec = embedder.forward()
@@ -81,12 +82,13 @@ def recognize(vec, recognizer, le, r_conf=0.65):
 def acquire_frame(detector, embedder, frame, recognizer, le, d_conf, r_conf):#,faceA):
     # data = []
     # data = (face, vector, coords, name, proba), ...
+
     out_faces = get_faces(detector, embedder, frame, d_conf)#,faceA)
     # names = [recognize(item[1], recognizer, le) for item in out_faces]
     # for face in out_faces:
         # item = (*face, *recognize(face[1], recognizer, le, r_conf))
         # data.append(item)
-    data = [(*face, *recognize(face[1], recognizer, le, r_conf)) for face in out_faces]
+    data = [(*face, *recognize(face[1], recognizer, le, r_conf), dt.datetime.utcnow()) for face in out_faces]
     return data
 
 
@@ -99,11 +101,11 @@ def draw_frame(frame, data):
     (startX, startY, endX, endY) = coords
     text = "{}: {:.2f}%".format(name, proba * 100)
     y = startY - 10 if startY - 10 > 10 else startY + 10
-    cv2.rectangle(frame,
-                  (startX, startY),
-                  (endX, endY),
-                  (0, 0, 255), 2
-    )
+    # cv2.rectangle(frame,
+    #               (startX, startY),
+    #               (endX, endY),
+    #               (0, 0, 255), 2
+    # )
     cv2.putText(frame, text, (startX, y),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
