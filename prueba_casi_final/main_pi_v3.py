@@ -138,8 +138,8 @@ ct = CentroidTracker(maxDisappeared=25, maxDistance=75)
 trackers = []
 trackableObjects = {}
 out = 0
-salidos = []
-skipped_frames = 10
+skipped_frames = 2
+out_prev = 0
 
 cpt=0;
 fps_count = FPS().start()
@@ -148,23 +148,29 @@ while True:
 
 	frame = imutils.resize(frame, width=500)
 	rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
+	(H, W) = frame.shape[:2]
 	rects = []
-	trackers = []
 
+	#print(cpt)
 	if cpt % skipped_frames== 0:
-		detections = get_faces(detector, embedder, frame, 0.5, fa)
 		recon = []
+		fotos = []
+		ps = []
+		trackers = []
+		detections = get_faces(detector, embedder, frame, 0.5, fa)
+		#[(face,vector,coordenada,imagen_completa)]
 		face_data = [(*face, *recognize(face[1], recognizer, le, 0.65)) for face in detections]
+		#[(face,vector,coordenada,imagen_completa, nombre, prob)]
 		for item in face_data:
 			#Listas con nombres de reconocidos
-			recon.append(item[3])
+			recon.append(item[4])
+			fotos.append(item[0])
+			ps.append(item[5])
 		for face in detections:
 			(startX, startY, endX, endY) = face[2]
 			tracker = dlib.correlation_tracker()
 			rect = dlib.rectangle(startX, startY, endX, endY)
 			tracker.start_track(rgb, rect)
-
 			# add the tracker to our list of trackers so we can
 			# utilize it during skip frames
 			trackers.append(tracker)
@@ -182,42 +188,41 @@ while True:
 			# add the bounding box coordinates to the rectangles list
 			rects.append((startX, startY, endX, endY))
 
-	objects = ct.update(rects,recon)
-
+	objects, names, images, probabilities  = ct.update(rects,recon, fotos, ps)
 	# loop over the tracked objects
-	for (objectID, centroid_nombre) in objects.items():
+	for (objectID, centroid),(ID, name),(I,im),(D,prob) in zip(objects.items(),
+						names.items(), images.items(), probabilities.items()):
+
 		to = trackableObjects.get(objectID, None)
 		if to is None:
-			to = TrackableObject(objectID, centroid_nombre[0],centroid_nombre[1])
+			to = TrackableObject(objectID, centroid, name, im, prob)
 		else:
-			# the difference between the y-coordinate of the *current*
-			# centroid and the mean of *previous* centroids will tell
-			# us in which direction the object is moving (negative for
-			# 'up' and positive for 'down')
 			y = [c[1] for c in to.centroids]
 			direction = centroid[1] - np.mean(y)
 			to.centroids.append(centroid)
-			## Envio de mails
-			if not to.sent:
-				if to.reconocido:
-					#enviar mail
-					nombre = centroid_nombre[1]
-				else:
-					nombre = 'unknown '+string(objectID)
-					# enviar mails
-				to.sent = True
-
 			# Si es que salio
 			# check to see if the object has been counted or not
 			if not to.counted and direction > 0  and centroid[1] > H - 50:
-				out += 1
+				to.out = True
 				to.counted = True
-				salidos.append(centroid_nombre[1]+' salio')
 		# store the trackable object in our dictionary
 		trackableObjects[objectID] = to
 
+		#Coordinamos el paquete de envio
+		## Envio de mails
+		if not to.sent:
+			paquete = [to.prob, to.pic, to.reconocido, to.out]
+			if to.reconocido:
+				#enviar mail
+				paquete.append(to.name)
+			else:
+				paquete.append('unknown {}'.format(objectID))
+				# enviar mails
+			##Paquete a enviar
+			to.sent = True
+
 	for item in face_data:
-		print(item[3])
+		print('Reconocido ',item[4])
 #       if item[3] == 'unknown':
 #           pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
 #           addperson2db(name='', surname='', is_recongized=False,
@@ -233,11 +238,11 @@ while True:
 #   frame = draw_frame(frame, item)
 	fps_count.update()
 	cpt += 1
-	if cpt > 200:
+	out_prev = out
+	if cpt > 250:
 		video_getter.stop()
 		break
 	exitbool = show_frame(frame)
-
 #   if exitbool:
 #       # SV.stop()
 #       fps_count.stop()
