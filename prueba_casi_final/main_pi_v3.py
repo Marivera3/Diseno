@@ -1,4 +1,4 @@
-###############################################################################
+cd ###############################################################################
 # SCRIPT PRINCIPAL DE RECONOCIMIENTO FACIAL                                   #
 # Diseño Eléctrico - Grupo 14                                                 #
 ###############################################################################
@@ -97,7 +97,7 @@ recognizer, le = train(data)
 
 ## Connect to DBs
 # Connection to mongoengine DB Rasp
-print('[INFO] Connecting to DB mongoengine')
+# print('[INFO] Connecting to DB mongoengine')
 #me.connect('person_rasp', host='mongodb://grupo14.duckdns.org:1226/Rasp')
 #me.connect(host='mongodb://192.168.0.25:27017/Rasp', replicaset='rsdiseno')
 #me.connect('Rasp')
@@ -239,16 +239,16 @@ while True:
 	fps_count.update()
 	cpt += 1
 	out_prev = out
-	if cpt > 250:
-		video_getter.stop()
-		break
+	# if cpt > 250:
+	# 	video_getter.stop()
+	# 	break
 	exitbool = show_frame(frame)
-#   if exitbool:
-#       # SV.stop()
-#       fps_count.stop()
-#       print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
-#       print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
-#       time.sleep(1)
-#       video_getter.stop()
-#       # db_client.close()
-#       break
+	if exitbool:
+	  # SV.stop()
+	  fps_count.stop()
+	  print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
+	  print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
+	  time.sleep(1)
+	  video_getter.stop()
+      # db_client.close()
+	  break
