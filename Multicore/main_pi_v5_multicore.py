@@ -31,7 +31,7 @@ from multiprocessing import Process, Queue, Manager
 from pyimagesearch.centroidtracker_cp import CentroidTracker
 from pyimagesearch.trackableobject_cp import TrackableObject
 from functions_v4 import get_faces, recognize, draw_frame, show_frame, train
-from VideoGetv2 import VideoGet
+from VideoGetv3 import VideoGet
 from SaveVideov2 import SaveVideo
 # from FPS import FPS
 from Person2DB import Person2DB
@@ -189,7 +189,7 @@ def main_core(args, frame_queue, pframe_queue):
         # if cpt > 250:
         # 	video_getter.stop()
         # 	break
-        exitbool = show_frame(frame)
+        exitbool = 0# show_frame(frame)
         if exitbool or cpt > 50:
           # SV.stop()
           fps_count.stop()
@@ -246,11 +246,11 @@ if __name__ == "__main__":
     pframe_queue = mp.Queue()
 
     p = mp.Process(target=main_core, args=(arg, frame_queue, pframe_queue,))
-    # sec = mp.Process(target=sec_core, args=(frame_queue,))
+    sec = mp.Process(target=sec_core, args=(frame_queue,))
     # third = mp.Process(target=third_core, args=(pframe_queue,))
     p.start()
     time.sleep(10)
-    # sec.start()
+    sec.start()
     # sec.join()
     # time.sleep(5)
     # third.start()
