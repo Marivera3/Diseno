@@ -159,6 +159,7 @@ while True:
 		trackers = []
 		trackers_esp32 = []
 		devices = []
+		face_data_esp32 = []
 
 		detections = get_faces(detector, embedder, frame, 0.5, fa)
 		#[(face,vector,coordenada,imagen_completa)]
@@ -179,7 +180,7 @@ while True:
 			# loop over the trackers
 
 		frame_esp32 = esp32_frame('grupo14.duckdns.org', 1228)
-		if frame_esp32:
+		if not frame_esp32 is None:
 			frame_esp32 = imutils.resize(frame_esp32, width=500)
 			rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
 			detections_esp32 = get_faces(detector, embedder, frame_esp32, 0.5, fa)
@@ -210,7 +211,7 @@ while True:
 			rects.append((startX, startY, endX, endY))
 
 		frame_esp32 = esp32_frame('grupo14.duckdns.org', 122)
-		if frame_esp32:
+		if not frame_esp32 is None:
 			frame_esp32 = imutils.resize(frame_esp32, width=500)
 			rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
 			for tracker in trackers_esp32:
@@ -267,6 +268,8 @@ while True:
 
 	for item in face_data:
 		print('Reconocido ',item[4])
+	for item in face_data_esp32:
+		print('Reconocido ',item[4])
 #       if item[3] == 'unknown':
 #           pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
 #           addperson2db(name='', surname='', is_recongized=False,
@@ -286,7 +289,7 @@ while True:
 	#if cpt > 250:
 	#	video_getter.stop()
 	#	break
-	exitbool = show_frame(frame)
+	exitbool = 0# show_frame(frame)
 	if exitbool or cpt > 100:
 		 SV.stop()
 		 fps_count.stop()
