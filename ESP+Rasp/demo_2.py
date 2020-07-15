@@ -258,6 +258,8 @@ while True:
 
 		cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+		cv2.putText(frame, 'Entro : {}'.format(to.inn), (centroid[0] - 10, centroid[1] + 10),
+			cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 		cv2.circle(frame, (centroid[0], centroid[1]), 4, (0,0, 255), -1)
 
 
