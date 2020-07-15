@@ -3,7 +3,7 @@ from PIL import Image
 import io
 import numpy as np
 
-ef esp32_frame(host, port):
+def esp32_frame(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(5)
     ip = socket.gethostbyname(host)
@@ -12,7 +12,7 @@ ef esp32_frame(host, port):
         s.connect(server_address)
         image = b''
         buf_len = int.from_bytes(s.recv(2), "little")
-    except socket.timeout or ConnectionRefusedError:
+    except:
         return None;
 
     while True:
