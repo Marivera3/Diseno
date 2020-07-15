@@ -9,7 +9,7 @@ import time
 import cv2
 import datetime as dt
 import mongoengine as me
-from pymongo import MongoClient
+# from pymongo import MongoClient
 from User.User import PersonRasp
 
 class Person2DB(threading.Thread):
