@@ -101,9 +101,9 @@ def main_core(args, frame_queue, pframe_queue):
             frame = draw_frame(frame, item)
         fps_count.update()
 
-            # cpt +=1
+        cpt +=1
 
-        exitbool = show_frame(frame)
+#       exitbool = show_frame(frame)
 
         if exitbool or cpt == 80:
             #

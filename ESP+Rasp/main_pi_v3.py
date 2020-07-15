@@ -224,8 +224,8 @@ while True:
                 # add the bounding box coordinates to the rectangles list
                 rects.append((startX, startY, endX, endY))
 
+    print(rects, recon, fotos, ps, devices)
     objects, names, images, probabilities, devices  = ct.update(rects, recon, fotos, ps, devices)
-    print(objects, names, images, probabilities, devices)
     # loop over the tracked objects
     for (objectID, centroid),(ID, name),(I,im),(D,prob), (F,dev) in zip(objects.items(),
         names.items(), images.items(), probabilities.items(), devices.items()):

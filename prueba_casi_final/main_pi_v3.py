@@ -145,10 +145,10 @@ out_prev = 0
 cpt=0;
 fps_count = FPS().start()
 while True:
-        #frame = video_getter.frame.copy()
-	frame = esp32_frame("grupo14.duckdns.org", 1228)
-	if frame is None:
-		continue
+	frame = video_getter.frame.copy()
+	#frame = esp32_frame("grupo14.duckdns.org", 1228)
+	#if frame is None:
+		#continue
 	frame = np.array(frame)
 	frame = imutils.resize(frame, width=500)
 	rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -246,8 +246,8 @@ while True:
 	# if cpt > 250:
 	# 	video_getter.stop()
 	# 	break
-	exitbool = show_frame(frame)
-	if exitbool:
+	#exitbool = show_frame(frame)
+	if cpt >= 80:
 	  # SV.stop()
 	  fps_count.stop()
 	  print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
