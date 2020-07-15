@@ -131,10 +131,11 @@ pathIn= './SavedImages/13/'
 ## REVISAR SI HAY UN FORMATO QUE SEA MAS COMPRIMIMDO
 pathOut = 'video_v1.avi'
 fps = 25
-#SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
+SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
 
 #print('[INFO] Starting saving Video...')
-#SV.start()
+SV.start()
+
 ct = CentroidTracker(maxDisappeared=25, maxDistance=75)
 trackers = []
 trackableObjects = {}
@@ -248,7 +249,7 @@ while True:
 	# 	break
 	#exitbool = show_frame(frame)
 	if cpt >= 80:
-	  # SV.stop()
+	  SV.stop()
 	  fps_count.stop()
 	  print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
 	  print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
