@@ -179,6 +179,7 @@ while True:
             tracker.start_track(rgb, rect)
             trackers.append(tracker)
             # loop over the trackers
+        '''
 
         frame_esp32 = esp32_frame('grupo14.duckdns.org', 1228)
         if frame_esp32:
@@ -197,6 +198,7 @@ while True:
                     tracker.start_track(rgb_esp32, rect)
                     trackers_esp32.append(tracker)
                     # loop over the trackers
+        '''
     else:
         for tracker in trackers:
             # update the tracker and grab the updated position
@@ -209,22 +211,23 @@ while True:
             endY = int(pos.bottom())
             # add the bounding box coordinates to the rectangles list
             rects.append((startX, startY, endX, endY))
-        for tracker in trackers_esp32:
             # update the tracker and grab the updated position
+            '''
             frame_esp32 = esp32_frame('grupo14.duckdns.org', 1228)
             if frame_esp32:
                 rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
-                tracker.update(rgb_esp32)
-                pos = tracker.get_position()
-                # unpack the position object
-                startX = int(pos.left())
-                startY = int(pos.top())
-                endX = int(pos.right())
-                endY = int(pos.bottom())
-                # add the bounding box coordinates to the rectangles list
-                rects.append((startX, startY, endX, endY))
+                for tracker in trackers_esp32:
+                    tracker.update(rgb_esp32)
+                    pos = tracker.get_position()
+                    # unpack the position object
+                    startX = int(pos.left())
+                    startY = int(pos.top())
+                    endX = int(pos.right())
+                    endY = int(pos.bottom())
+                    # add the bounding box coordinates to the rectangles list
+                    rects.append((startX, startY, endX, endY))
+            '''
 
-    print(rects, recon, fotos, ps, devices)
     objects, names, images, probabilities, devices  = ct.update(rects, recon, fotos, ps, devices)
     # loop over the tracked objects
     for (objectID, centroid),(ID, name),(I,im),(D,prob), (F,dev) in zip(objects.items(),
