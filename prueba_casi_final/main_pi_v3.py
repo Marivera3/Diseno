@@ -37,26 +37,10 @@ from functions_v4 import get_faces, recognize, draw_frame, show_frame, train
 from VideoGet import VideoGet
 from SaveVideo import SaveVideo
 from User.User import PersonRasp
+from Person2DBv2 import Person2DB
 from FrameProcessing import FrameProcessing
 from imutils.video import FPS
 from esp32_frame import esp32_frame
-
-
-
-def addperson2db(name, surname, is_recongized, last_in, last_out, picture, likehood):
-	idh = hashlib.sha256(str(time.time()).encode()).hexdigest()
-	if last_out == "":
-
-		#PersonRasp(idrasp=idh,name=name, surname=surname, last_out=last_out,is_recognized=is_recongized, likelihood=likehood).save()
-
-		if is_recongized:
-			PersonRasp(idrasp= idh,name=name, surname=surname, last_in=last_in,
-						is_recognized=is_recongized, likelihood=likehood).save()
-
-		else:
-			PersonRasp(idrasp= idh,name=name, surname=surname, last_in=last_in,
-						is_recognized=is_recongized, likelihood=likehood,
-						picture=picture).save()
 
 
 # PARAMETERS
@@ -142,7 +126,7 @@ trackableObjects = {}
 out = 0
 skipped_frames = 2
 out_prev = 0
-
+exitbool = False
 cpt=0;
 fps_count = FPS().start()
 while True:
@@ -150,7 +134,7 @@ while True:
 	#frame = esp32_frame("grupo14.duckdns.org", 1228)
 	#if frame is None:
 		#continue
-	frame = np.array(frame)
+	# frame = np.array(frame)
 	frame = imutils.resize(frame, width=500)
 	rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 	(H, W) = frame.shape[:2]
@@ -223,9 +207,10 @@ while True:
 			else:
 				paquete.append('unknown {}'.format(objectID))
 				# enviar mails
+			p2db = Person2DB(paquete).start()
+			print(paquete)
 			##Paquete a enviar
 			to.sent = True
-
 	for item in face_data:
 		print('Reconocido ',item[4])
 #       if item[3] == 'unknown':
@@ -234,7 +219,7 @@ while True:
 #                       last_in=dt.datetime.utcnow(), last_out='',
 #                       picture=pickled, likehood=0)
 #       else:
-#           separador = item[3].index("_")
+#           separador = item[3].index("_")likelihood=self.likelihood
 #           addperson2db(name=item[3][0:separador],
 #                       surname=item[3][separador+1:-1], is_recongized=True,
 #                       last_in=dt.datetime.utcnow(), last_out='',
@@ -247,8 +232,8 @@ while True:
 	# if cpt > 250:
 	# 	video_getter.stop()
 	# 	break
-	#exitbool = show_frame(frame)
-	if cpt >= 80:
+	# exitbool = show_frame(frame)
+	if cpt >= 150 or exitbool:
 	  SV.stop()
 	  fps_count.stop()
 	  print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
