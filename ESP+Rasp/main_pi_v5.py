@@ -4,7 +4,7 @@
 ###############################################################################
 
 '''
-python3 demo_1.py --detector face_detection_model \
+python3 main_pi_v5.py --detector face_detection_model \
 --embeddings output/embeddings.pickle \
 --embedding-model openface_nn4.small2.v1.t7 \
 --confidence 0.5 --shape-predictor shape_predictor_68_face_landmarks.dat
@@ -39,7 +39,7 @@ from SaveVideo import SaveVideo
 from User.User import PersonRasp
 from FrameProcessing import FrameProcessing
 from imutils.video import FPS
-
+from esp32_frame import esp32_frame
 
 
 def addperson2db(name, surname, is_recongized, last_in, last_out, picture, likehood):
@@ -116,25 +116,24 @@ time.sleep(1.0)
 video_getter = VideoGet(src = 0, name='Video Getter')
 
 #workers = [FrameProcessing(i, q_video, q_frame, detector, embedder, recognizer, le, fa) for i in range(1, 3)]
-
+print('[INFO] Starting VideoGet...')
 video_getter.start()
 time.sleep(2.0)
 #for item in workers:
 #    item.start()
 
-# print('[INFO] Starting VideoGet...')
-time.sleep(3.0)
 
 ## Set ffmeg instance
-pathIn= './SavedImages/13/'
+pathIn= './videorecordings/13/'
+# pathIn = './videorecordings/' + str(datetime.datetime.now().hour) + '/'
 ## REVISAR SI HAY UN FORMATO QUE SEA MAS COMPRIMIMDO
 pathOut = 'video_v1.avi'
 fps = 25
-#SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
+SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
 
-#print('[INFO] Starting saving Video...')
-#SV.start()
-ct = CentroidTracker(maxDisappeared=20, maxDistance=100)
+print('[INFO] Starting saving Video...')
+SV.start()
+ct = CentroidTracker(maxDisappeared=25, maxDistance=75)
 trackers = []
 trackers_esp32 = []
 trackableObjects = {}
@@ -175,12 +174,28 @@ while True:
 			(startX, startY, endX, endY) = face[2]
 			tracker = dlib.correlation_tracker()
 			rect = dlib.rectangle(startX, startY, endX, endY)
-
-			cv2.rectangle(frame, (startX, startY), (endX, endY),
-				(0, 0, 255), 2)
 			tracker.start_track(rgb, rect)
 			trackers.append(tracker)
 			# loop over the trackers
+
+		frame_esp32 = esp32_frame('grupo14.duckdns.org', 1228)
+		if frame_esp32:
+			frame_esp32 = imutils.resize(frame_esp32, width=500)
+			rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
+			detections_esp32 = get_faces(detector, embedder, frame_esp32, 0.5, fa)
+			face_data_esp32 =  [(*face, *recognize(face[1], recognizer, le, 0.65)) for face in detections_esp32]
+			for item in face_data_esp32:
+					recon.append(item[4])
+					fotos.append(item[0])
+					ps.append(item[5])
+					[devices.append(0) for i in range(len(face_data_esp32))]
+			for face in detections_esp32:
+					(startX, startY, endX, endY) = face[2]
+					tracker = dlib.correlation_tracker()
+					rect = dlib.rectangle(startX, startY, endX, endY)
+					tracker.start_track(rgb_esp32, rect)
+					trackers_esp32.append(tracker)
+					# loop over the trackers
 	else:
 		for tracker in trackers:
 			# update the tracker and grab the updated position
@@ -191,11 +206,24 @@ while True:
 			startY = int(pos.top())
 			endX = int(pos.right())
 			endY = int(pos.bottom())
-
-			cv2.rectangle(frame, (startX, startY), (endX, endY),
-				(0, 0, 255), 2)
 			# add the bounding box coordinates to the rectangles list
 			rects.append((startX, startY, endX, endY))
+
+		frame_esp32 = esp32_frame('grupo14.duckdns.org', 122)
+		if frame_esp32:
+			frame_esp32 = imutils.resize(frame_esp32, width=500)
+			rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
+			for tracker in trackers_esp32:
+				tracker.update(rgb_esp32)
+				pos = tracker.get_position()
+				# unpack the position object
+				startX = int(pos.left())
+				startY = int(pos.top())
+				endX = int(pos.right())
+				endY = int(pos.bottom())
+				# add the bounding box coordinates to the rectangles list
+				rects.append((startX, startY, endX, endY))
+
 	objects, names, images, probabilities, devicess, blocks  = ct.update(rects,recon, fotos, ps, devices)
 	# loop over the tracked objects
 	for (objectID, centroid),(ID, name),(I,im),(D,prob),(F,dev), (G,block) in zip(objects.items(),
@@ -223,24 +251,12 @@ while True:
 		# store the trackable object in our dictionary
 		trackableObjects[objectID] = to
 
-		# store the trackable object in our dictionary
-		trackableObjects[objectID] = to
-
-		if to.reconocido and to.block_n:
-			#enviar mail
-			text = "{}".format(to.name)
-		else:
-			text = 'unknown {}'.format(objectID)
-
-		cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
-			cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 100, 255), 2)
-		cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
 
 		#Coordinamos el paquete de envio
 		## Envio de mails
 		if not to.sent and to.block_n:
 			paquete = [to.prob, to.pic, to.reconocido, to.out, to.inn]
-			if to.reconocido:
+			if to.reconocido :
 				#enviar mail
 				paquete.append(to.name)
 			else:
@@ -267,16 +283,16 @@ while True:
 	fps_count.update()
 	cpt += 1
 	out_prev = out
-	if cpt > 250:
-		video_getter.stop()
-		break
+	#if cpt > 250:
+	#	video_getter.stop()
+	#	break
 	exitbool = show_frame(frame)
-#   if exitbool:
-#       # SV.stop()
-#       fps_count.stop()
-#       print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
-#       print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
-#       time.sleep(1)
-#       video_getter.stop()
-#       # db_client.close()
-#       break
+	if exitbool or cpt > 100:
+		 SV.stop()
+		 fps_count.stop()
+		 print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
+		 print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
+		 time.sleep(1)
+		 video_getter.stop()
+		 # db_client.close()
+		 break
