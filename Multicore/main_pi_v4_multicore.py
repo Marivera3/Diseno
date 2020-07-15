@@ -25,10 +25,11 @@ import numpy as np
 import multiprocessing as mp
 # from PIL import Image
 from imutils.face_utils import FaceAligner
+from imutils.video import FPS
 from functions_v4 import acquire_frame, draw_frame, show_frame, train
 from VideoGetv2 import VideoGet
 from SaveVideov2 import SaveVideo
-from FPS import FPS
+# from FPS import FPS
 from Person2DB import Person2DB
 from CheckDB2 import CheckDB2
 
@@ -47,30 +48,32 @@ ap.add_argument("-c", "--confidence", type=float, default=0.5,
                 help="minimum probability to filter weak detections")
 #ap.add_argument("-p", "--shape-predictor", required=True,
 #	            help="path to facial landmark predictor")
-args = vars(ap.parse_args())
+arg = vars(ap.parse_args())
 
 # load our serialized face detector from disk
-print("[INFO] loading face detector...")
-protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
-modelPath = os.path.sep.join([args["detector"],
-                              "res10_300x300_ssd_iter_140000.caffemodel"])
-detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
-#predictor = dlib.shape_predictor(args["shape_predictor"])
-#fa = FaceAligner(predictor, desiredFaceWidth=256)
-# load our serialized face embedding model from disk
-print("[INFO] loading face recognizer...")
-embedder = cv2.dnn.readNetFromTorch(args["embedding_model"])
 
-# load the face embeddings
-print("[INFO] loading face embeddings...")
-data = pickle.loads(open(args["embeddings"], "rb").read())
-
-recognizer, le = train(data)
-
-def main_core(detector, embedder, recognizer, le, frame_queue, pframe_queue):
+def main_core(args, frame_queue, pframe_queue):
 
     print('[INFO] Starting:', mp.current_process().name)
+
+    print("[INFO] loading face detector...")
+    protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
+    modelPath = os.path.sep.join([args["detector"],
+                                  "res10_300x300_ssd_iter_140000.caffemodel"])
+    detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
+
+    #predictor = dlib.shape_predictor(args["shape_predictor"])
+    #fa = FaceAligner(predictor, desiredFaceWidth=256)
+    # load our serialized face embedding model from disk
+    print("[INFO] loading face recognizer...")
+    embedder = cv2.dnn.readNetFromTorch(args["embedding_model"])
+
+    # load the face embeddings
+    print("[INFO] loading face embeddings...")
+    data = pickle.loads(open(args["embeddings"], "rb").read())
+
+    recognizer, le = train(data)
     # time.sleep(1.0)
 
     # initialize the video stream, then allow the camera sensor to warm up
@@ -84,22 +87,19 @@ def main_core(detector, embedder, recognizer, le, frame_queue, pframe_queue):
 
     cpt=0;
     exitbool = False
-    fps_count = FPS(2).start()
+    fps_count = FPS().start()
+
     while True:
 
         frame = video_getter.frame.copy()
-        fps_count.istime() # Calculate if enough time has passed for process the frame
 
-        if fps_count.boolFrames:
 
-            fps_count.updateactualtime() # Update the comparison time
-
-            face_data = acquire_frame(detector, embedder, frame , recognizer, le, 0.5, 0.65)#,fa)
-            pframe_queue.put(face_data)
-            for item in face_data:
-                # print(item[2:])
-                frame = draw_frame(frame, item)
-            fps_count.update()
+        face_data = acquire_frame(detector, embedder, frame , recognizer, le, 0.5, 0.65)#,fa)
+        pframe_queue.put(face_data)
+        for item in face_data:
+            # print(item[2:])
+            frame = draw_frame(frame, item)
+        fps_count.update()
 
             # cpt +=1
 
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     frame_queue = mp.Queue()
     pframe_queue = mp.Queue()
 
-    p = mp.Process(target=main_core, args=(detector, embedder, recognizer, le, frame_queue, pframe_queue,))
+    p = mp.Process(target=main_core, args=(arg, frame_queue, pframe_queue,))
     # sec = mp.Process(target=sec_core, args=(frame_queue,))
     # third = mp.Process(target=third_core, args=(pframe_queue,))
     p.start()
@@ -170,6 +170,6 @@ if __name__ == "__main__":
     # time.sleep(5)
     # third.start()
     # third.join()
-    p.join()
+    # p.join()
 
     # [pframe_queue.get() for _ in range(pframe_queue.qsize())]
