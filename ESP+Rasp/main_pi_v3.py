@@ -181,10 +181,10 @@ while True:
             tracker.start_track(rgb, rect)
             trackers.append(tracker)
             # loop over the trackers
-        '''
 
         frame_esp32 = esp32_frame('grupo14.duckdns.org', 1228)
         if frame_esp32:
+            frame_esp32 = imutils.resize(frame_esp32, width=500)
             rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
             detections_esp32 = get_faces(detector, embedder, frame_esp32, 0.5, fa)
             face_data_esp32 =  [(*face, *recognize(face[1], recognizer, le, 0.65)) for face in detections_esp32]
@@ -200,7 +200,6 @@ while True:
                     tracker.start_track(rgb_esp32, rect)
                     trackers_esp32.append(tracker)
                     # loop over the trackers
-        '''
     else:
         for tracker in trackers:
             # update the tracker and grab the updated position
@@ -214,9 +213,9 @@ while True:
             # add the bounding box coordinates to the rectangles list
             rects.append((startX, startY, endX, endY))
             # update the tracker and grab the updated position
-            '''
-            frame_esp32 = esp32_frame('grupo14.duckdns.org', 1228)
+            frame_esp32 = esp32_frame('grupo14.duckdns.org', 122)
             if frame_esp32:
+                frame_esp32 = imutils.resize(frame_esp32, width=500)
                 rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
                 for tracker in trackers_esp32:
                     tracker.update(rgb_esp32)
@@ -228,7 +227,6 @@ while True:
                     endY = int(pos.bottom())
                     # add the bounding box coordinates to the rectangles list
                     rects.append((startX, startY, endX, endY))
-            '''
 
     objects, names, images, probabilities, devicess  = ct.update(rects, recon, fotos, ps, devices)
     # loop over the tracked objects
