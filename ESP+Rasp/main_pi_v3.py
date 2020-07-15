@@ -21,6 +21,7 @@ import io
 import pickle
 import codecs
 import time
+import datetime
 import sys
 from multiprocessing import Process, Queue, Manager
 from pyimagesearch.centroidtracker_cp import CentroidTracker
@@ -118,23 +119,24 @@ video_getter = VideoGet(src = 0, name='Video Getter')
 
 #workers = [FrameProcessing(i, q_video, q_frame, detector, embedder, recognizer, le, fa) for i in range(1, 3)]
 
+print('[INFO] Starting VideoGet...')
 video_getter.start()
 time.sleep(2.0)
 #for item in workers:
 #    item.start()
 
-# print('[INFO] Starting VideoGet...')
-time.sleep(3.0)
+
 
 ## Set ffmeg instance
-pathIn= './SavedImages/13/'
+pathIn= './videorecordings/13/'
+# pathIn = './videorecordings/' + str(datetime.datetime.now().hour) + '/'
 ## REVISAR SI HAY UN FORMATO QUE SEA MAS COMPRIMIMDO
 pathOut = 'video_v1.avi'
 fps = 25
-#SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
+SV = SaveVideo(name='VideoWriter', vg=video_getter, pathOut=pathIn+pathOut, fps=fps, encode_quality=95)
 
-#print('[INFO] Starting saving Video...')
-#SV.start()
+print('[INFO] Starting saving Video...')
+SV.start()
 ct = CentroidTracker(maxDisappeared=25, maxDistance=75)
 trackers = []
 trackers_esp32 = []
@@ -284,16 +286,16 @@ while True:
     fps_count.update()
     cpt += 1
     out_prev = out
-    if cpt > 250:
-        video_getter.stop()
-        break
+    # if cpt > 250:
+    #     video_getter.stop()
+    #     break
     #exitbool = show_frame(frame)
-#   if exitbool:
-#       # SV.stop()
-#       fps_count.stop()
-#       print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
-#       print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
-#       time.sleep(1)
-#       video_getter.stop()
-#       # db_client.close()
-#       break
+  if exitbool or cpt > 100:
+      SV.stop()
+      fps_count.stop()
+      print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
+      print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
+      time.sleep(1)
+      video_getter.stop()
+      # db_client.close()
+      break

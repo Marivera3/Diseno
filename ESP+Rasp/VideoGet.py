@@ -25,6 +25,9 @@ class VideoGet(threading.Thread):
             else:
                 self.stop()
 
+        print(f'[INFO] Releasing video capture...')
+        self.stream.release()
+
     def stop(self):
         self.fps.stop()
         print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
@@ -32,5 +35,3 @@ class VideoGet(threading.Thread):
 
         self.stopped = True
         self.rval = False
-        print(f'[INFO] Releasing video capture...')
-        self.stream.release()
