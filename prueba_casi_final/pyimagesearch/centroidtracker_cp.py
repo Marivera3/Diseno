@@ -10,6 +10,10 @@ class CentroidTracker:
 		# been marked as "disappeared", respectively
 		self.nextObjectID = 0
 		self.objects = OrderedDict()
+		self.names = OrderedDict()
+		self.pictures = OrderedDict()
+		self.probs = OrderedDict()
+
 		self.disappeared = OrderedDict()
 
 		# store the number of maximum consecutive frames a given
@@ -22,10 +26,13 @@ class CentroidTracker:
 		# distance we'll start to mark the object as "disappeared"
 		self.maxDistance = maxDistance
 
-	def register(self, centroid,nombre):
+	def register(self, centroid, nombre, image, pb):
 		# when registering an object we use the next available object
 		# ID to store the centroid
-		self.objects[self.nextObjectID] = (centroid, nombre)
+		self.objects[self.nextObjectID] = centroid
+		self.names[self.nextObjectID] = nombre
+		self.pictures[self.nextObjectID] = image
+		self.probs[self.nextObjectID] = pb
 		self.disappeared[self.nextObjectID] = 0
 		self.nextObjectID += 1
 
@@ -33,15 +40,18 @@ class CentroidTracker:
 		# to deregister an object ID we delete the object ID from
 		# both of our respective dictionaries
 		del self.objects[objectID]
+		del self.names[objectID]
+		del self.pictures[objectID]
+		del self.probs[objectID]
 		del self.disappeared[objectID]
 
-	def update(self, rects, nombres):
+	def update(self, rects, nombres, pics, probs):
 		if len(rects) == 0:
 			for objectID in list(self.disappeared.keys()):
 				self.disappeared[objectID] += 1
 				if self.disappeared[objectID] > self.maxDisappeared:
 					self.deregister(objectID)
-			return self.objects
+			return self.objects, self.names, self.pictures, self.probs
 
 		inputCentroids = np.zeros((len(rects), 2), dtype="int")
 
@@ -52,15 +62,15 @@ class CentroidTracker:
 
 		if len(self.objects) == 0:
 			for i in range(0, len(inputCentroids)):
-				self.register(inputCentroids[i], nombres[i])
+				self.register(inputCentroids[i], nombres[i], pics[i], probs[i])
 
 		# otherwise, are are currently tracking objects so we need to
 		# try to match the input centroids to existing object
 		# centroids
 		else:
 			objectIDs = list(self.objects.keys())
-			objectCentroids = list(self.objects.values()[0])
-
+			objectCentroids = list(self.objects.values())
+			#print('Objects centroids ',oC)
 			# compute the distance between each pair of object centroids
 			D = dist.cdist(np.array(objectCentroids), inputCentroids)
 			rows = D.min(axis=1).argsort()
@@ -73,7 +83,7 @@ class CentroidTracker:
 				if D[row, col] > self.maxDistance:
 					continue
 				objectID = objectIDs[row]
-				self.objects[objectID][0] = inputCentroids[col]
+				self.objects[objectID] = inputCentroids[col]
 				self.disappeared[objectID] = 0
 				usedRows.add(row)
 				usedCols.add(col)
@@ -93,7 +103,7 @@ class CentroidTracker:
 
 			else:
 				for col in unusedCols:
-					self.register(inputCentroids[col], nombres[col])
+					self.register(inputCentroids[col], nombres[col], pics[col], probs[col])
 
 		# return the set of trackable objects
-		return self.objects
+		return self.objects, self.names, self.pictures, self.probs
