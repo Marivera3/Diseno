@@ -3,7 +3,7 @@ from PIL import Image
 import io
 import numpy as np
 
-ef esp32_frame(host, port):
+def esp32_frame(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(5)
     ip = socket.gethostbyname(host)
