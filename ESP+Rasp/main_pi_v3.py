@@ -290,12 +290,12 @@ while True:
     #     video_getter.stop()
     #     break
     #exitbool = show_frame(frame)
-  if exitbool or cpt > 100:
-      SV.stop()
-      fps_count.stop()
-      print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
-      print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
-      time.sleep(1)
-      video_getter.stop()
-      # db_client.close()
-      break
+    if exitbool or cpt > 100:
+         SV.stop()
+         fps_count.stop()
+         print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
+         print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
+         time.sleep(1)
+         video_getter.stop()
+         # db_client.close()
+         break
