@@ -74,7 +74,7 @@ def main_core(args, frame_queue, pframe_queue):
     data = pickle.loads(open(args["embeddings"], "rb").read())
 
     recognizer, le = train(data)
-    # time.sleep(1.0)
+    time.sleep(1.0)
 
     # initialize the video stream, then allow the camera sensor to warm up
 
@@ -95,7 +95,7 @@ def main_core(args, frame_queue, pframe_queue):
 
 
         face_data = acquire_frame(detector, embedder, frame , recognizer, le, 0.5, 0.65)#,fa)
-        pframe_queue.put(face_data)
+        # pframe_queue.put(face_data)
         for item in face_data:
             # print(item[2:])
             frame = draw_frame(frame, item)

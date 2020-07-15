@@ -19,6 +19,7 @@ class CheckDB2(threading.Thread):
             self.seconds = seconds
 
         def run(self):
+            cpt = 0
             while True:
                 if (datetime.datetime.utcnow() - self.prev_time).total_seconds() > self.seconds:
                     self.prev_time = datetime.datetime.utcnow()
@@ -34,6 +35,11 @@ class CheckDB2(threading.Thread):
                                     self.db = json.loads(database.content.decode())
                             else:
                                 self.has_changes = False
+                        cpt = 0
                     except:
                         print('[INFO] Could no connect to Server Database ')
+                        cpt += 1
+                        time.sleep(cpt/10.0 + 1)
+                        if cpt > 50:
+                            cpt = 0
                     time.sleep(1)

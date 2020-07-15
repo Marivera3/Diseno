@@ -43,12 +43,14 @@ class Person2DB(threading.Thread):
 
         def run(self):
             c = 0
+            cpt = 0
             while True:
                 connected = True
                 try:
                     elem = self.queue_pframes.get(False)
                     c = 0
                     for item in elem:
+                        cpt = 0
                         while connected:
                             try:
                                 print('[INFO] Connecting to DB mongoengine...')
@@ -74,6 +76,10 @@ class Person2DB(threading.Thread):
                             # Falta fijar la excepcion
                                 print('[INFO] Connection fails')
                                 connected = True
+                                cpt += 1
+                                time.sleep(ctp/10.0 + 1)
+                                if cpt > 50:
+                                    cpt = 1
                 except queue.Empty:
                     time.sleep(1)
                     c += 1

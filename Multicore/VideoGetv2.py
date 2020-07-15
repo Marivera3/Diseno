@@ -21,7 +21,7 @@ class VideoGet(threading.Thread):
         while not self.stopped:
             if self.rval:
                 (self.rval, self.frame) = self.stream.read()
-                self.frame_queue.put(self.frame)
+                # self.frame_queue.put(self.frame)
                 self.fps.update()
             else:
                 self.stop()
