@@ -228,10 +228,10 @@ while True:
                     rects.append((startX, startY, endX, endY))
             '''
 
-    objects, names, images, probabilities, devices  = ct.update(rects, recon, fotos, ps, devices)
+    objects, names, images, probabilities, devicess  = ct.update(rects, recon, fotos, ps, devices)
     # loop over the tracked objects
     for (objectID, centroid),(ID, name),(I,im),(D,prob), (F,dev) in zip(objects.items(),
-        names.items(), images.items(), probabilities.items(), devices.items()):
+        names.items(), images.items(), probabilities.items(), devicess.items()):
 
         to = trackableObjects.get(objectID, None)
         if to is None:
