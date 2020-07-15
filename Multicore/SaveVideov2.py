@@ -47,9 +47,9 @@ class SaveVideo(threading.Thread):
             except queue.Empty:
                 # Handle empty queue here
                 c += 1
-                time.sleep(c/10.0)
+                time.sleep(0.05)
                 # print(f'c : {c}')
-                if c > 10:
+                if c > 500:
                     print('break cicle')
                     break
 

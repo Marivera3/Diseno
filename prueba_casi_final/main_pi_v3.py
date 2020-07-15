@@ -127,7 +127,7 @@ time.sleep(2.0)
 time.sleep(3.0)
 
 ## Set ffmeg instance
-pathIn= './SavedImages/13/'
+pathIn= './videorecordings/13/'
 ## REVISAR SI HAY UN FORMATO QUE SEA MAS COMPRIMIMDO
 pathOut = 'video_v1.avi'
 fps = 25

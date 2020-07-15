@@ -249,7 +249,7 @@ if __name__ == "__main__":
     sec = mp.Process(target=sec_core, args=(frame_queue,))
     # third = mp.Process(target=third_core, args=(pframe_queue,))
     p.start()
-    time.sleep(10)
+    time.sleep(1)
     sec.start()
     # sec.join()
     # time.sleep(5)
