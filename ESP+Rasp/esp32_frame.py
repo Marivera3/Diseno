@@ -22,7 +22,7 @@ def esp32_frame(host, port):
     if len(image) > 1000:
         img = Image.open(io.BytesIO(image))
         frame = np.array(img)
-        return img
+        return frame
 
 if __name__ == "__main__":
     esp32_frame("190.162.132.149", 1228)
