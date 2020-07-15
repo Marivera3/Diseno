@@ -1,4 +1,4 @@
-cd ###############################################################################
+###############################################################################
 # SCRIPT PRINCIPAL DE RECONOCIMIENTO FACIAL                                   #
 # Diseño Eléctrico - Grupo 14                                                 #
 ###############################################################################
@@ -39,6 +39,7 @@ from SaveVideo import SaveVideo
 from User.User import PersonRasp
 from FrameProcessing import FrameProcessing
 from imutils.video import FPS
+from esp32_frame import esp32_frame
 
 
 
@@ -144,8 +145,11 @@ out_prev = 0
 cpt=0;
 fps_count = FPS().start()
 while True:
-	frame = video_getter.frame.copy()
-
+        #frame = video_getter.frame.copy()
+	frame = esp32_frame("grupo14.duckdns.org", 1228)
+	if frame is None:
+		continue
+	frame = np.array(frame)
 	frame = imutils.resize(frame, width=500)
 	rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 	(H, W) = frame.shape[:2]
