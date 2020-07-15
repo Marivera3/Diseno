@@ -289,7 +289,7 @@ while True:
     # if cpt > 250:
     #     video_getter.stop()
     #     break
-    #exitbool = show_frame(frame)
+    exitbool = 0#show_frame(frame)
     if exitbool or cpt > 100:
          SV.stop()
          fps_count.stop()
