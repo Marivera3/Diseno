@@ -238,8 +238,8 @@ while True:
         if to is None:
             to = TrackableObject(objectID, centroid, name, im, prob, dev)
         else:
-            y = [c[1] for c in to.centroids]
-            direction = centroid[1] - np.mean(y)
+            x = [c[0] for c in to.centroids]
+            direction = centroid[0] - np.mean(x)
             to.centroids.append(centroid)
 
             # Si es que salio
@@ -250,8 +250,8 @@ while True:
             print(f'to.device: {to.device}')
             print(f'direction: {direction}')
             print(f'centroid: {centroid}')
-            if not to.counted and direction > 0  and centroid[1] > H - 180 and to.device == 1:
-                to.out = True
+            if not to.counted and direction > 30  and centroid[0] > W//2 and to.device == 1:
+                to.inn = True
                 to.counted = True
 #           elif not to.counted and direction > 0  and centroid[1] > H - 250 and to.device == 0:
 #               to.inn = True
@@ -265,7 +265,7 @@ while True:
 
         #Coordinamos el paquete de envio
         ## Envio de mails
-        if not to.sent and to.block_n:
+        if not to.sent and to.block_n and to.counted:
             paquete = [to.prob, to.pic, to.reconocido, to.out, to.inn]
             if to.reconocido :
                 #enviar mail
@@ -276,7 +276,7 @@ while True:
             ##Paquete a enviar
             to.sent = True
             print((paquete[0], paquete[2:]))
-            #Person2DB(paquete).start()
+            Person2DB(paquete).start()
     for item in face_data:
         pass
         #print('Reconocido ',item[4])
