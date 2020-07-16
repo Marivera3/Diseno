@@ -138,6 +138,7 @@ ct = CentroidTracker(maxDisappeared=25, maxDistance=75)
 trackers = []
 trackers_esp32 = []
 trackableObjects = {}
+face_data_esp32 = None
 out = 0
 skipped_frames = 2
 out_prev = 0
@@ -179,8 +180,9 @@ while True:
 			trackers.append(tracker)
 			# loop over the trackers
 
+		'''
 		frame_esp32 = esp32_frame('grupo14.duckdns.org', 1228)
-		if frame_esp32:
+		if frame_esp32 is not None:
 			frame_esp32 = imutils.resize(frame_esp32, width=500)
 			rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
 			detections_esp32 = get_faces(detector, embedder, frame_esp32, 0.5, fa)
@@ -197,6 +199,7 @@ while True:
 					tracker.start_track(rgb_esp32, rect)
 					trackers_esp32.append(tracker)
 					# loop over the trackers
+                '''
 	else:
 		for tracker in trackers:
 			# update the tracker and grab the updated position
@@ -210,8 +213,9 @@ while True:
 			# add the bounding box coordinates to the rectangles list
 			rects.append((startX, startY, endX, endY))
 
-		frame_esp32 = esp32_frame('grupo14.duckdns.org', 122)
-		if frame_esp32:
+		'''
+		frame_esp32 = esp32_frame('grupo14.duckdns.org', 1228)
+		if frame_esp32 is not None:
 			frame_esp32 = imutils.resize(frame_esp32, width=500)
 			rgb_esp32 = cv2.cvtColor(frame_esp32, cv2.COLOR_BGR2RGB)
 			for tracker in trackers_esp32:
@@ -224,6 +228,7 @@ while True:
 				endY = int(pos.bottom())
 				# add the bounding box coordinates to the rectangles list
 				rects.append((startX, startY, endX, endY))
+		'''
 
 	objects, names, images, probabilities, devicess, blocks  = ct.update(rects,recon, fotos, ps, devices)
 	# loop over the tracked objects
@@ -265,9 +270,15 @@ while True:
 				# enviar mails
 			##Paquete a enviar
 			to.sent = True
-			Person2DB(paquete).start()
+			pdb = Person2DB(paquete).start()
 	for item in face_data:
-		print('Reconocido ',item[4])
+		print('Reconocido Raspberry ',item[4])
+	'''
+	if face_data_esp32 is not None:
+		for item in face_data_esp32:
+			print('Reconocido ESP32 ', item[4])
+		face_data_esp32 = None
+	'''
 #       if item[3] == 'unknown':
 #           pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
 #           addperson2db(name='', surname='', is_recongized=False,
@@ -287,8 +298,8 @@ while True:
 	#if cpt > 250:
 	#	video_getter.stop()
 	#	break
-	exitbool = show_frame(frame)
-	if exitbool or cpt > 100:
+	exitbool = 0#show_frame(frame)
+	if exitbool:
 		 SV.stop()
 		 fps_count.stop()
 		 print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))

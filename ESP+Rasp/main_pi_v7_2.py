@@ -148,7 +148,8 @@ out_prev = 0
 
 
 ## CheckBD2 Server
-cdb2 = CheckDB2("check").start()
+#cdb2 = CheckDB2("check", 10)
+#cdb2.start()
 
 cpt=0;
 fps_count = FPS().start()
@@ -250,7 +251,7 @@ while True:
 
 			# Si es que salio
 			# check to see if the object has been counted or not
-			if not to.counted and direction > 0  and centroid[1] > H - 250 and to.device == 0:
+			if not to.counted and direction > 0  and centroid[1] > H - 250 and to.device == 1:
 				to.inn = True
 				to.counted = True
 		if block:
@@ -283,7 +284,7 @@ while True:
 			to.centroids.append(centroid)
 			# Si es que salio
 			# check to see if the object has been counted or not
-			if not to.counted and direction > 0  and centroid[1] > H - 50 and to.device == 1:
+			if not to.counted and direction > 0  and centroid[1] > H - 50 and to.device == 0:
 				to.out = True
 				to.counted = True
 		if block:
@@ -309,8 +310,8 @@ while True:
 			Person2DB(paquete).start()
 
 
-	for nam in cdb2.newnames:
-		print(f'Reconocimiento: {nam[0]} es {nam[1][0]}_{nam[1][1]}')
+	#for nam in cdb2.newnames:
+	#	print(f'Reconocimiento: {nam[0]} es {nam[1][0]}_{nam[1][1]}')
 
 
 	for item in face_data:
@@ -318,6 +319,7 @@ while True:
 	if face_data_esp32 != None:
 		for item in face_data_esp32:
 			print('Reconocido ESP32 ',item[4])
+		face_data_esp32 = None
 #       if item[3] == 'unknown':
 #           pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
 #           addperson2db(name='', surname='', is_recongized=False,
@@ -337,8 +339,8 @@ while True:
 	#if cpt > 250:
 	#	video_getter.stop()
 	#	break
-	exitbool = show_frame(frame)
-	if exitbool or cpt > 100:
+	#exitbool = show_frame(frame)
+	if False:
 		 SV.stop()
 		 fps_count.stop()
 		 print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))

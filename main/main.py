@@ -118,6 +118,7 @@ SV.start()
 
 # Register mode
 reg_mode = RegMode('localhost', 1299)
+reg_mode = True
 Register_counter = 0
 
 # maxDisappeared: Frame para que desaparezca el objeto trackeado
@@ -140,6 +141,7 @@ while True:
     (H, W) = frame.shape[:2]
     rects = []
 
+    '''
     # Rutina de registro
     if reg_mode is not None:
         if reg_mode.Register_mode:
@@ -153,8 +155,25 @@ while True:
                 recognizer, le = train(data)
             fps_count.update()
             continue
+    '''
 
-    if cpt % skipped_frames== 0:
+    # Rutina de registro
+    if reg_mode:
+        detections = get_faces(detector, embedder, frame, D_PROB, fa)
+        if len(detections) == 1:
+            data['embeddings'].append(detections[0][1].flatten())
+            data['names'].append('arca')
+            Register_counter += 1
+        if Register_counter > REG_NUM:
+            Register_counter = 0
+            reg_mode = False
+            recognizer, le = train(data)
+            cpt = 100
+        fps_count.update()
+        print(f'Frame numero {Register_counter}')
+        continue
+
+    if cpt % skipped_frames == 0:
         recon = []
         fotos = []
         ps = []
@@ -239,8 +258,8 @@ while True:
     cpt += 1
     out_prev = out
 
-    exitbool = show_frame(frame)
-    if exitbool:
+    #exitbool = show_frame(frame)
+    if cpt > 100:
          SV.stop()
          fps_count.stop()
          print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))

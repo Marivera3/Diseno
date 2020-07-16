@@ -8,8 +8,8 @@ class VideoGet(threading.Thread):
 
     def __init__(self, src=0, name='Video Getter'):
         super().__init__(name=name)
-        self.stream = cv.VideoCapture(src)
-#       self.stream.open(src, apiPreference=cv.CAP_V4L2)
+        self.stream = cv.VideoCapture()
+        self.stream.open(src, apiPreference=cv.CAP_V4L2)
         (self.rval, self.frame) = self.stream.read()
         self.fps = FPS().start()
         self.stopped = False

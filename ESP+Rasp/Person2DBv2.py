@@ -9,6 +9,7 @@ import time
 import cv2
 import datetime as dt
 import mongoengine as me
+import base64
 # from pymongo import MongoClient
 from User.User import PersonRasp
 
@@ -25,8 +26,8 @@ class Person2DB(threading.Thread):
             # self.db = 'test1'
             self.db = 'Rasp'
             self.stopped = False
-            # self.likelihood, self.pic, self.rec, self.out, self.inn, self.name = paquete
-            self.likelihood, self.pic, self.rec, self.out, self.name = paquete
+            self.likelihood, self.pic, self.rec, self.out, self.inn, self.name = paquete
+            #self.likelihood, self.pic, self.rec, self.out, self.name = paquete
             self.timenow = dt.datetime.utcnow()
 
 
@@ -54,8 +55,9 @@ class Person2DB(threading.Thread):
                 jpeg_frame = ""
             else:
                 # jpeg_frame = pickle.dumps(cv2.imencode('.jpg', self.pic, [cv2.IMWRITE_JPEG_QUALITY, 70])[1].tostring())
-                jpeg_frame = codecs.encode(pickle.dumps(cv2.imencode('.jpg',
-                            self.pic, [cv2.IMWRITE_JPEG_QUALITY, 70])[1]), "base64").decode()
+                #jpeg_frame = codecs.encode(pickle.dumps(cv2.imencode('.png',
+                            #self.pic, [cv2.IMWRITE_PNG_COMPRESSION, 3])[1]), "base64").decode()
+                jpeg_frame = base64.b64encode(cv2.imencode('.png', self.pic, [cv2.IMWRITE_PNG_COMPRESSION, 3])[1].tobytes()).decode('ascii')
                 # print(jpeg_frame)
             while not connected:
 
