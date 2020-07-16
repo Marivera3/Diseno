@@ -310,6 +310,7 @@ while True:
 	if face_data_esp32 != None:
 		for item in face_data_esp32:
 			print('Reconocido ESP32 ',item[4])
+		face_data_esp32 = None
 #       if item[3] == 'unknown':
 #           pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
 #           addperson2db(name='', surname='', is_recongized=False,
