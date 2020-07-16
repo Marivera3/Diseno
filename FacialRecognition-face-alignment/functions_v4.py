@@ -24,9 +24,6 @@ import os
 
 def get_faces(detector, embedder, frame, d_conf, facealigner):
     out_faces = []
-
-    # frame = vs.read()
-
     (h, w) = frame.shape[:2]
     size_array = np.array([w, h, w, h])
 
@@ -53,8 +50,8 @@ def get_faces(detector, embedder, frame, d_conf, facealigner):
 
         rect = dlib.rectangle(startX, startY, endX, endY)
         faceAligned = fa.align(frame, gray, rect)
-	(fH, fW) = faceAligned.shape[:2]
-			
+        (fH, fW) = faceAligned.shape[:2]
+
 
         if fW < 20 or fH < 20:
             continue
