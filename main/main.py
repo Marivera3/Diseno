@@ -32,7 +32,7 @@ from pymongo import MongoClient
 from subprocess import Popen, PIPE
 from PIL import Image
 from imutils.face_utils import FaceAligner
-from functions_v4 import get_faces, recognize, draw_frame, show_frame, train
+from functions_v4 import extract_faces, get_embeddings, get_faces, recognize, draw_frame, show_frame, train
 from VideoGet import VideoGet
 from SaveVideo import SaveVideo
 from Person2DBv2 import Person2DB
@@ -59,22 +59,24 @@ def addperson2db(name, surname, is_recongized, last_in, last_out, picture, likeh
 
 # PARAMETERS
 
-D_PROB = 0.65 # Probability value for detection
+D_PROB = 0.5 # Probability value for detection
 R_PROB = 0.65 # Probability value for recognition
 REG_NUM = 30 # Number of frames for registration
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--detector", required=True,
-                help="path to OpenCV's deep learning face detector")
+				help="path to OpenCV's deep learning face detector")
 ap.add_argument("-e", "--embeddings", required=True,
-                help="path to serialized db of facial embeddings")
+				help="path to serialized db of facial embeddings")
 ap.add_argument("-m", "--embedding-model", required=True,
-                help="path to OpenCV's deep learning face embedding model")
+				help="path to OpenCV's deep learning face embedding model")
 ap.add_argument("-c", "--confidence", type=float, default=0.5,
-                help="minimum probability to filter weak detections")
+				help="minimum probability to filter weak detections")
 ap.add_argument("-p", "--shape-predictor", required=True,
-                help="path to facial landmark predictor")
+				help="path to facial landmark predictor")
+ap.add_argument("-b", "--shape-predv2", required=True,
+				help="path to facil land for vector")
 args = vars(ap.parse_args())
 
 # load our serialized face detector from disk
@@ -83,12 +85,14 @@ protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
 modelPath = os.path.sep.join([args["detector"],
                               "res10_300x300_ssd_iter_140000.caffemodel"])
 detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
+#detector = cv2.CascadeClassifier('../BS/haarcascade')
 
 predictor = dlib.shape_predictor(args["shape_predictor"])
 fa = FaceAligner(predictor, desiredFaceWidth=256)
 # load our serialized face embedding model from disk
 print("[INFO] loading face recognizer...")
-embedder = cv2.dnn.readNetFromTorch(args["embedding_model"])
+embedder = dlib.face_recognition_model_v1(args["embedding_model"])
+sp = dlib.shape_predictor(args["shape_predv2"])
 
 # load the face embeddings
 print("[INFO] loading face embeddings...")
@@ -117,9 +121,10 @@ print('[INFO] Starting saving Video...')
 SV.start()
 
 # Register mode
-reg_mode = RegMode('localhost', 1299)
-reg_mode = True
+reg_mode = RegMode('192.168.0.25', 8099)
+reg_mode.start()
 Register_counter = 0
+Register_buffer = []
 
 # maxDisappeared: Frame para que desaparezca el objeto trackeado
 # max Distance: Distancia entre centrides máxima para que desaparezca objeto
@@ -141,37 +146,49 @@ while True:
     (H, W) = frame.shape[:2]
     rects = []
 
-    '''
     # Rutina de registro
     if reg_mode is not None:
         if reg_mode.Register_mode:
-            detections = get_faces(detector, embedder, frame, D_PROB, fa)
-            if len(detections) == 1:
-                data['embeddings'].append(detections[0][1].flatten())
-                data['names'].append(reg_mode.Register_id)
-            if register_counter > REG_NUM:
-                reg_mode.reset()
+            detections = extract_faces(detector, frame, D_PROB)
+            if len(detections[1]) == 1:
+                Register_buffer.append(detections)
+                Register_counter += 1
+            if Register_counter > REG_NUM:
+                for item in Register_buffer:
+                    vec_actual = get_embeddings(item[0], item[1], item[2], embedder, sp, fa)
+                    if vec_actual is not None:
+                        data['embeddings'].append(vec_actual.flatten())
+                        data['names'].append(reg_mode.Register_id)
                 Register_counter = 0
+                Register_buffer = []
+                reg_mode.reset()
                 recognizer, le = train(data)
+            print(f'frame {Register_counter}')
+            continue
+
+    '''
+    # Rutina de registro
+    if True:
+        if reg_mode.Register_mode:
+            detections = extract_faces(detector, frame, D_PROB)
             fps_count.update()
+            if len(detections[1]) == 1:
+                Register_buffer.append(detections)
+                Register_counter += 1
+            if Register_counter > REG_NUM:
+                for item in Register_buffer:
+                    vec_actual = get_embeddings(item[0], item[1], item[2], embedder, fa)
+                    if vec_actual is not None:
+                        data['embeddings'].append(vec_actual.flatten())
+                        data['names'].append('arca')
+                Register_counter = 0
+                Register_buffer = []
+                reg_mode = False
+                recognizer, le = train(data)
+                cpt = 100
+            print(f'frame {Register_counter}')
             continue
     '''
-
-    # Rutina de registro
-    if reg_mode:
-        detections = get_faces(detector, embedder, frame, D_PROB, fa)
-        if len(detections) == 1:
-            data['embeddings'].append(detections[0][1].flatten())
-            data['names'].append('arca')
-            Register_counter += 1
-        if Register_counter > REG_NUM:
-            Register_counter = 0
-            reg_mode = False
-            recognizer, le = train(data)
-            cpt = 100
-        fps_count.update()
-        print(f'Frame numero {Register_counter}')
-        continue
 
     if cpt % skipped_frames == 0:
         recon = []
@@ -180,7 +197,7 @@ while True:
         trackers = []
         devices = []
 
-        detections = get_faces(detector, embedder, frame, D_PROB, fa)
+        detections = get_faces(detector, embedder, sp,frame, D_PROB, fa)
         #[(face,vector,coordenada,imagen_completa)]
         face_data = [(*face, *recognize(face[1], recognizer, le, R_PROB)) for face in detections]
         #[(face,vector,coordenada,imagen_completa, nombre, prob)]
@@ -250,16 +267,16 @@ while True:
                 # enviar mails
             ##Paquete a enviar
             to.sent = True
-            Person2DB(paquete).start()
+            #Person2DB(paquete).start()
     for item in face_data:
         print('Reconocido ',item[4])
 
-    fps_count.update()
+    #fps_count.update()
     cpt += 1
     out_prev = out
 
     #exitbool = show_frame(frame)
-    if cpt > 100:
+    if False:#cpt > 100:
          SV.stop()
          fps_count.stop()
          print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))

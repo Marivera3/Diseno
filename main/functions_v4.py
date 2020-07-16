@@ -15,64 +15,95 @@ import dlib
 import cv2
 import os
 
+def extract_faces(detector, frame, d_conf):
+        frame = imutils.resize(frame, width=500)
+        # frame = vs.read()
 
-def get_faces(detector, embedder, frame, d_conf, facealigner):
-	out_faces = []
-	frame = imutils.resize(frame, width=500)
-	# frame = vs.read()
+        (h, w) = frame.shape[:2]
+        size_array = np.array([w, h, w, h])
 
-	(h, w) = frame.shape[:2]
-	size_array = np.array([w, h, w, h])
+        imageBlob = cv2.dnn.blobFromImage(
+                cv2.resize(frame, (300, 300)), 1.0, (300, 300),
+                (104.0, 177.0, 123.0), swapRB=False, crop=False)
 
-	imageBlob = cv2.dnn.blobFromImage(
-		cv2.resize(frame, (300, 300)), 1.0, (300, 300),
-		(104.0, 177.0, 123.0), swapRB=False, crop=False)
+        detector.setInput(imageBlob)
+        detections = np.array(detector.forward())
 
-	detector.setInput(imageBlob)
-	detections = np.array(detector.forward())
+        indexes = np.where(detections[0, 0, :, 2] > d_conf)[0]
+        # This line gets all the index where detections has greater confidence than d_conf
 
-	indexes = np.where(detections[0, 0, :, 2] > d_conf)[0]
-	# This line gets all the index where detections has greater confidence than d_conf
+        boxes = detections[0, 0, indexes, 3:7] * size_array
+        lista = [frame, indexes, boxes]
+        return lista
 
-	boxes = detections[0, 0, indexes, 3:7] * size_array
-	coords = boxes.astype("int")
+def get_embeddings(frame, indexes, boxes, embedder, shape_pred, facealigner):
+        coords = boxes.astype("int")
+        i = indexes[0]
+        (startX, startY, endX, endY) = coords[i]
 
-	for i in indexes:
-		(startX, startY, endX, endY) = coords[i]
-		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-		#face = frame[startY:endY, startX:endX]
-		#(fH, fW) = face.shape[:2]
+        rect = dlib.rectangle(startX, startY, endX, endY)
 
-		rect = dlib.rectangle(startX, startY, endX, endY)
+        face = facealigner.align(frame, gray, rect)
 
-		face = facealigner.align(frame, gray, rect)
+        shape = shape_pred(frame, rect)
+        vec = np.asarray(embedder.compute_face_descriptor(frame, shape)).reshape(1, -1)
+        return vec
 
-		(fH, fW) = face.shape[:2]
+def get_faces(detector, embedder, shape_pred, frame, d_conf, facealigner):
+        out_faces = []
+        frame = imutils.resize(frame, width=500)
+        # frame = vs.read()
 
-		if fW < 20 or fH < 20:
-			continue
-		faceBlob = cv2.dnn.blobFromImage(face, 1.0 /
-			255,(96, 96), (0, 0, 0), swapRB=True, crop=False)
-		embedder.setInput(faceBlob)
-		vec = embedder.forward()
-		out_faces.append((face, vec, coords[i], frame))
+        (h, w) = frame.shape[:2]
+        size_array = np.array([w, h, w, h])
 
-	# frame, [(face, vector, coordinate),...]
-	return out_faces
+        imageBlob = cv2.dnn.blobFromImage(
+                cv2.resize(frame, (300, 300)), 1.0, (300, 300),
+                (104.0, 177.0, 123.0), swapRB=False, crop=False)
+
+        detector.setInput(imageBlob)
+        detections = np.array(detector.forward())
+
+        indexes = np.where(detections[0, 0, :, 2] > d_conf)[0]
+        # This line gets all the index where detections has greater confidence than d_conf
+
+        boxes = detections[0, 0, indexes, 3:7] * size_array
+        coords = boxes.astype("int")
+
+        for i in indexes:
+                (startX, startY, endX, endY) = coords[i]
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+                rect = dlib.rectangle(startX, startY, endX, endY)
+
+                face = facealigner.align(frame, gray, rect)
+
+                shape = shape_pred(frame, rect)
+                vec = np.asarray(embedder.compute_face_descriptor(frame, shape)).reshape(1, -1)
+
+
+                face = facealigner.align(frame, gray, rect)
+
+                out_faces.append((face, vec, coords[i], frame))
+
+        # frame, [(face, vector, coordinate),...]
+        return out_faces
+
 
 
 def recognize(vec, recognizer, le, r_conf=0.65):
-	# perform classification to recognize the face
-	preds = recognizer.predict_proba(vec)[0]
-	j = np.argmax(preds)
-	proba = preds[j]
-	if proba > r_conf:
-		name = le.classes_[j]
-	else:
-		name = 'unknown'
+        # perform classification to recognize the face
+        preds = recognizer.predict_proba(vec)[0]
+        j = np.argmax(preds)
+        proba = preds[j]
+        if proba > r_conf:
+                name = le.classes_[j]
+        else:
+                name = 'unknown'
 
-	return name, proba
+        return name, proba
 
 def acquire_frame(detector, embedder, frame, recognizer, le, d_conf, r_conf,faceA):
     out_faces = get_faces(detector, embedder, frame, d_conf,faceA)
@@ -81,53 +112,53 @@ def acquire_frame(detector, embedder, frame, recognizer, le, d_conf, r_conf,face
     return data
 
 def draw_frame(frame, data):
-	# draw the bounding box of the face along with the
-	# associated probability
-	coords = data[2]
-	name = data[3]
-	proba = data[4]
-	(startX, startY, endX, endY) = coords
-	text = "{}: {:.2f}%".format(name, proba * 100)
-	y = startY - 10 if startY - 10 > 10 else startY + 10
-	cv2.rectangle(frame,
-				  (startX, startY),
-				  (endX, endY),
-				  (0, 0, 255), 2
-	)
-	cv2.putText(frame, text, (startX, y),
-				cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        # draw the bounding box of the face along with the
+        # associated probability
+        coords = data[2]
+        name = data[3]
+        proba = data[4]
+        (startX, startY, endX, endY) = coords
+        text = "{}: {:.2f}%".format(name, proba * 100)
+        y = startY - 10 if startY - 10 > 10 else startY + 10
+        cv2.rectangle(frame,
+                                  (startX, startY),
+                                  (endX, endY),
+                                  (0, 0, 255), 2
+        )
+        cv2.putText(frame, text, (startX, y),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
-	return frame
+        return frame
 
 def show_frame(frame):
-	# show the output frame
-	exitbool = False
-	cv2.imshow("Frame", frame)
-	key = cv2.waitKey(1)
-	if key == ord('q') or key == 27:
-		exitbool = True
-	return exitbool
+        # show the output frame
+        exitbool = False
+        cv2.imshow("Frame", frame)
+        key = cv2.waitKey(1)
+        if key == ord('q') or key == 27:
+                exitbool = True
+        return exitbool
 
 
 def train(data):
-	# encode the labels
-	print("[INFO] encoding labels...")
-	le = LabelEncoder()
-	labels = le.fit_transform(data["names"])
+        # encode the labels
+        print("[INFO] encoding labels...")
+        le = LabelEncoder()
+        labels = le.fit_transform(data["names"])
 
-	# train the model used to accept the 128-d embeddings of the face and
-	# then produce the actual face recognition
-	print("[INFO] training model...")
-	recognizer = SVC(C=1.0, kernel="linear", probability=True)
-	recognizer.fit(data["embeddings"], labels)
+        # train the model used to accept the 128-d embeddings of the face and
+        # then produce the actual face recognition
+        print("[INFO] training model...")
+        recognizer = SVC(C=1.0, kernel="linear", probability=True)
+        recognizer.fit(data["embeddings"], labels)
 
-	return recognizer, le
+        return recognizer, le
 
 
 def change_name(name,id_unknown, embeddings):
-	i=0
-	for name in embeddings['names']:
-		if name==id_unknown:
-			embeddings['names'][i]=name
-		i+=1
-	print(dic)
+        i=0
+        for name in embeddings['names']:
+                if name==id_unknown:
+                        embeddings['names'][i]=name
+                i+=1
+        print(dic)
