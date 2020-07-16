@@ -12,7 +12,7 @@ import mongoengine as me
 # from pymongo import MongoClient
 from User.User import PersonRasp
 
-class Person2DB(threading.Thread):
+class Person2DBv3(threading.Thread): 
 
         def __init__(self, paquete):
             # '-t', str(time)
