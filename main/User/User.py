@@ -15,3 +15,4 @@ class PersonRasp(me.Document):
     seralize_pic        = me.StringField() #
     picture             = me.StringField() # RGB picture in bytes(?)
     likelihood          = me.DecimalField()
+    is_trained          = me.BooleanField(default=False)

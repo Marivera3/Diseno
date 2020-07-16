@@ -36,6 +36,7 @@ from functions_v4 import extract_faces, get_embeddings, get_faces, recognize, dr
 from VideoGet import VideoGet
 from SaveVideo import SaveVideo
 from Person2DBv2 import Person2DB
+from Person2DBv3 import Person2DBv3
 from User.User import PersonRasp
 from RegMode import RegMode
 from FrameProcessing import FrameProcessing
@@ -154,6 +155,7 @@ while True:
                 Register_buffer.append(detections)
                 Register_counter += 1
             if Register_counter > REG_NUM:
+                Person2DBv3(reg_mode.name, reg_mode.surname).start()
                 for item in Register_buffer:
                     vec_actual = get_embeddings(item[0], item[1], item[2], embedder, sp, fa)
                     if vec_actual is not None:

@@ -28,4 +28,6 @@ class RegMode(threading.Thread):
             if myfile.status_code == 200:
                 new_size = json.loads(myfile.content.decode())
             self.Register_id = new_size[0]['name']
+            self.name = new_size[0]['name']
+            self.surname = new_size[0]['surname']
             socket_cliente.close()
