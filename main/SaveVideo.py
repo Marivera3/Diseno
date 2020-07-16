@@ -33,12 +33,15 @@ class SaveVideo(threading.Thread):
                                     ], stdin=PIPE)
 
     def run(self):
-        while not self.stopped and self.vg.rval:
-            data = cv2.imencode('.jpg', self.vg.frame, self.encode_param)[1].tobytes()
-            self.process.stdin.write(data)
+        try:
+            while not self.stopped and self.vg.rval:
+                data = cv2.imencode('.jpg', self.vg.frame, self.encode_param)[1].tobytes()
+                self.process.stdin.write(data)
 
-        self.process.stdin.close()
-        print(f'[INFO] Saving Video to {self.pathOut}...')
+            self.process.stdin.close()
+            print(f'[INFO] Saving Video to {self.pathOut}...')
+        except:
+            self.process.stdin.close()
 
 
     def stop(self):
