@@ -47,7 +47,7 @@ from imutils.video import FPS
 
 reg_led = LED(17)
 D_PROB = 0.5 # Probability value for detection
-R_PROB = 0.65 # Probability value for recognition
+R_PROB = 0.7 # Probability value for recognition
 REG_NUM = 30 # Number of frames for registration
 
 # construct the argument parser and parse the arguments
@@ -293,5 +293,6 @@ while True:
          print("[INFO] approx. processed FPS: {:.2f}".format(fps_count.fps()))
          time.sleep(1)
          video_getter.stop()
+         p2db.stop()
          # db_client.close()
          break

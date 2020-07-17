@@ -15,11 +15,11 @@ import requests
 # from pymongo import MongoClient
 from User.User import PersonRasp
 
-class Person2DB:
+class Person2DB(threading.Thread):
 
         def __init__(self):
             # '-t', str(time)
-            super().__init__(threading.Thread)
+            super().__init__()
 
             # self.host = 'mongodb://grupo14.duckdns.org:1226/Rasp'
             # self.host = '192.168.0.25'
@@ -66,7 +66,7 @@ class Person2DB:
 
             waiting2connect = False
 
-            while self.stoppped and len(self.queue) > 0:
+            while not self.stopped or len(self.queue) > 0:
                 c = 0
                 while not waiting2connect and len(self.queue) > 0:
                     try:
@@ -114,7 +114,7 @@ class Person2DB:
                         # Falta fijar la excepcion
                         print('[INFO] Connection fails')
                         c += 1
-                        time.sleep(c/10 + 0.5)
+                        time.sleep(0.05)
                         waiting2connect = False
                         if c > 5:
                             waiting2connect = True
