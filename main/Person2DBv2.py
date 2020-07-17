@@ -7,6 +7,7 @@ import queue
 import codecs
 import time
 import cv2
+import base64
 import datetime as dt
 import mongoengine as me
 # from pymongo import MongoClient
@@ -55,8 +56,7 @@ class Person2DB(threading.Thread):
                 jpeg_frame = ""
             else:
                 # jpeg_frame = pickle.dumps(cv2.imencode('.jpg', self.pic, [cv2.IMWRITE_JPEG_QUALITY, 70])[1].tostring())
-                jpeg_frame = codecs.encode(pickle.dumps(cv2.imencode('.jpg',
-                            self.pic, [cv2.IMWRITE_JPEG_QUALITY, 70])[1]), "base64").decode()
+                jpeg_frame = base64.b64encode(cv2.imencode('.png', self.pic, [cv2.IMWRITE_PNG_COMPRESSION, 3])[1].tobytes()).decode('ascii')
                 # print(jpeg_frame)
             while not connected:
 

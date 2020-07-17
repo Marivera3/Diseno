@@ -130,7 +130,7 @@ Register_buffer = []
 # maxDisappeared: Frame para que desaparezca el objeto trackeado
 # max Distance: Distancia entre centrides máxima para que desaparezca objeto
 #               (desplazamiento entre frames)
-ct = CentroidTracker(maxDisappeared=25, maxDistance=75)
+ct = CentroidTracker(maxDisappeared=5, maxDistance=200)
 trackers = []
 trackers_esp32 = []
 trackableObjects = {}
@@ -238,18 +238,24 @@ while True:
         if to is None:
             to = TrackableObject(objectID, centroid, name, im, prob, dev)
         else:
-            y = [c[1] for c in to.centroids]
-            direction = centroid[1] - np.mean(y)
+            x = [c[0] for c in to.centroids]
+            direction = centroid[0] - np.mean(x)
             to.centroids.append(centroid)
 
             # Si es que salio
             # check to see if the object has been counted or not
-            if not to.counted and direction > 0  and centroid[1] > H - 50 and to.device == 1:
-                to.out = True
-                to.counted = True
-            elif not to.counted and direction > 0  and centroid[1] > H - 250 and to.device == 0:
+            print(f'to.counted: {to.counted}')
+            print(f'to.block_n: {to.block_n}')
+            print(f'to.sent: {to.sent}')
+            print(f'to.device: {to.device}')
+            print(f'direction: {direction}')
+            print(f'centroid: {centroid}')
+            if not to.counted and direction > 30  and centroid[0] > W//2 and to.device == 1:
                 to.inn = True
                 to.counted = True
+#           elif not to.counted and direction > 0  and centroid[1] > H - 250 and to.device == 0:
+#               to.inn = True
+#               to.counted = True
         if block:
             to.block_n = True
             to.name = name
@@ -259,7 +265,7 @@ while True:
 
         #Coordinamos el paquete de envio
         ## Envio de mails
-        if not to.sent and to.block_n:
+        if not to.sent and to.block_n and to.counted:
             paquete = [to.prob, to.pic, to.reconocido, to.out, to.inn]
             if to.reconocido :
                 #enviar mail
@@ -269,9 +275,11 @@ while True:
                 # enviar mails
             ##Paquete a enviar
             to.sent = True
-            #Person2DB(paquete).start()
+            print((paquete[0], paquete[2:]))
+            Person2DB(paquete).start()
     for item in face_data:
-        print('Reconocido ',item[4])
+        pass
+        #print('Reconocido ',item[4])
 
     #fps_count.update()
     cpt += 1
