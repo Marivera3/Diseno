@@ -60,7 +60,7 @@ class Person2DB(threading.Thread):
             pass
 
         def stop(self):
-            self.stopped = True    
+            self.stopped = True
 
         def run(self):
 
@@ -119,8 +119,10 @@ class Person2DB(threading.Thread):
                         if c > 5:
                             waiting2connect = True
 
-                response = requests.get('https://www.google.com/')
-                if response.status_code == 200:
+
+                try:
+                    response = requests.get('https://www.google.com/')
                     waiting2connect = False
-                else:
+                except:
+                    print('no internet')
                     time.sleep(5)
