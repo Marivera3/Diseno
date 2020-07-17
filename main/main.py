@@ -108,8 +108,8 @@ print('[INFO] Starting saving Video...')
 SV.start()
 
 # Register mode
-#reg_mode = RegMode('192.168.0.25', 8099)
-reg_mode = RegMode('127.0.0.1', 8099)
+reg_mode = RegMode('192.168.0.25', 8099)
+#reg_mode = RegMode('127.0.0.1', 8099)
 reg_mode.start()
 Register_counter = 0
 Register_buffer = []
@@ -222,6 +222,8 @@ while True:
             tracker.start_track(rgb, rect)
             trackers.append(tracker)
             # loop over the trackers
+            for item in face_data:
+                print('Detectado: ',item[4])
 
     else:
         for tracker in trackers:
@@ -286,15 +288,14 @@ while True:
             print((paquete[0], paquete[2:]))
             paquete.append(datetime.datetime.now())
             p2db.queue.append(paquete)
-    for item in face_data:
-        print('Detectado: ',item[4])
 
     #fps_count.update()
     cpt += 1
     out_prev = out
 
     #exitbool = show_frame(frame)
-    if False:#cpt > 100:
+#   if False:#cpt > 100:
+    if cpt > 30:
          SV.stop()
          fps_count.stop()
          print("[INFO] elasped time fps processed: {:.2f}".format(fps_count.elapsed()))
