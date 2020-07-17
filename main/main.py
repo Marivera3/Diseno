@@ -27,6 +27,7 @@ from pyimagesearch.trackableobject_cp_v2 import TrackableObject
 import dlib
 import numpy as np
 import imutils
+import datetime
 import mongoengine as me
 from gpiozero import LED
 from pymongo import MongoClient
@@ -36,28 +37,11 @@ from imutils.face_utils import FaceAligner
 from functions_v4 import extract_faces, get_embeddings, get_faces, recognize, draw_frame, show_frame, train
 from VideoGet import VideoGet
 from SaveVideo import SaveVideo
-from Person2DBv2 import Person2DB
-from Person2DBv3 import Person2DBv3
+from Person2DBv4 import Person2DB
 from User.User import PersonRasp
 from RegMode import RegMode
 from FrameProcessing import FrameProcessing
 from imutils.video import FPS
-
-def addperson2db(name, surname, is_recongized, last_in, last_out, picture, likehood):
-    idh = hashlib.sha256(str(time.time()).encode()).hexdigest()
-    if last_out == "":
-
-        #PersonRasp(idrasp=idh,name=name, surname=surname, last_out=last_out,is_recognized=is_recongized, likelihood=likehood).save()
-
-        if is_recongized:
-            PersonRasp(idrasp= idh,name=name, surname=surname, last_in=last_in,
-                        is_recognized=is_recongized, likelihood=likehood).save()
-
-        else:
-            PersonRasp(idrasp= idh,name=name, surname=surname, last_in=last_in,
-                        is_recognized=is_recongized, likelihood=likehood,
-                        picture=picture).save()
-
 
 # PARAMETERS
 
@@ -130,6 +114,12 @@ reg_mode.start()
 Register_counter = 0
 Register_buffer = []
 
+
+# Add person 2 DB
+p2db = Person2DB()
+p2db.start()
+
+
 # maxDisappeared: Frame para que desaparezca el objeto trackeado
 # max Distance: Distancia entre centrides máxima para que desaparezca objeto
 #               (desplazamiento entre frames)
@@ -161,7 +151,7 @@ while True:
             if Register_counter > REG_NUM:
                 reg_led.off()
                 print("Processing face data")
-                Person2DBv3([reg_mode.name, reg_mode.surname]).start()
+                p2db.queue.append([reg_mode.name, reg_mode.surname])
                 for item in Register_buffer:
                     vec_actual = get_embeddings(item[0], item[1], item[2], embedder, sp, fa)
                     if vec_actual is not None:
@@ -286,7 +276,8 @@ while True:
             ##Paquete a enviar
             to.sent = True
             print((paquete[0], paquete[2:]))
-            Person2DB(paquete).start()
+            paquete.append(datetime.datetime.now())
+            p2db.queue.append(paquete)
     for item in face_data:
         print('Detectado: ',item[4])
 
