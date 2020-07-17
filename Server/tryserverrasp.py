@@ -12,8 +12,8 @@ import time
 # Connection to mongoengine DB Rasp
 # me.connect('Rasp', host='grupo14.duckdns.org', port=1226)
 # me.connect('Rasp',read_preference=ReadPreference.PRIMARY)
-#idh = hashlib.sha256(str(time.time()).encode()).hexdigest()
-#PersonRasp(idrasp= idh,last_in = dt.datetime.utcnow, is_recognized=False, likelihood=0.85, name='Max', surname='Rivera').save()
+idh = hashlib.sha256(str(time.time()).encode()).hexdigest()
+PersonRasp(idrasp= idh,last_in = dt.datetime.utcnow, is_recognized=False, likelihood=0.85, name='Max', surname='Rivera').save()
 me.connect('Rasp')
 while True:
 	time.sleep(1)
