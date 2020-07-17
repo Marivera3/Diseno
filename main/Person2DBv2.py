@@ -67,6 +67,8 @@ class Person2DB(threading.Thread):
                     # db_client = me.connect('test1', host='192.168.0.242', port=27017)
                     # time.sleep(0.05)
                     connected = True
+                    print("Nombre en DB")
+                    print(self.name)
 
                     # pickled = codecs.encode(pickle.dumps(item[0]), "base64").decode()
                     if self.name.split(' ')[0] == 'unknown':
