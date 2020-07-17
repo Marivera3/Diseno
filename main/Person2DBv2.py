@@ -19,7 +19,8 @@ class Person2DB(threading.Thread):
             super().__init__()
 
             # self.host = 'mongodb://grupo14.duckdns.org:1226/Rasp'
-            self.host = '192.168.0.25'
+            # self.host = '192.168.0.25'
+            self.host = '127.0.0.1'
             # self.host = '192.168.0.242'
             self.port = 27017
             # self.db = 'test1'
@@ -82,11 +83,12 @@ class Person2DB(threading.Thread):
                                     picture=jpeg_frame, likelihood=self.likelihood)
                     else:
                         # rutina de salida
-                        for doc in PersonRasp.objects():
-                            if doc['name'] == name and doc['surname'] == surname:
-                                doc.update(set__last_out=datetime.datetime.utcnow(),
-                                            set__is_recongized=self.rec,
-                                            set__likelihood=self.likelihood)
+                        if PersonRasp.objects():
+                            for doc in PersonRasp.objects():
+                                if doc['name'] == name and doc['surname'] == surname:
+                                    doc.update(set__last_out=datetime.datetime.utcnow(),
+                                                set__is_recongized=self.rec,
+                                                set__likelihood=self.likelihood)
 
 
 

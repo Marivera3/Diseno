@@ -12,14 +12,15 @@ import mongoengine as me
 # from pymongo import MongoClient
 from User.User import PersonRasp
 
-class Person2DBv3(threading.Thread): 
+class Person2DBv3(threading.Thread):
 
         def __init__(self, paquete):
             # '-t', str(time)
             super().__init__()
 
             # self.host = 'mongodb://grupo14.duckdns.org:1226/Rasp'
-            self.host = '192.168.0.25'
+            # self.host = '192.168.0.25'
+            self.host = '127.0.0.1'
             # self.host = '192.168.0.242'
             self.port = 27017
             # self.db = 'test1'
