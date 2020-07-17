@@ -25,6 +25,7 @@ class Person2DB(threading.Thread):
             # self.host = '192.168.0.25'
             self.host = '127.0.0.1'
             # self.host = '192.168.0.242'
+
             self.port = 27017
             # self.db = 'test1'
             self.db = 'Rasp'
@@ -69,6 +70,7 @@ class Person2DB(threading.Thread):
             while not self.stopped or len(self.queue) > 0:
                 c = 0
                 while not waiting2connect and len(self.queue) > 0:
+                    elem = ""
                     try:
                         db_client = me.connect(self.db, host=self.host , port=self.port)
                         waiting2connect = True
@@ -79,11 +81,11 @@ class Person2DB(threading.Thread):
                                 jpeg_frame = ""
                             else:
                                 # jpeg_frame = pickle.dumps(cv2.imencode('.jpg', self.pic, [cv2.IMWRITE_JPEG_QUALITY, 70])[1].tostring())
-                                jpeg_frame = base64.b64encode(cv2.imencode('.png', self.pic, [cv2.IMWRITE_PNG_COMPRESSION, 1])[1].tobytes()).decode('ascii')
+                                jpeg_frame = base64.b64encode(cv2.imencode('.png', pic, [cv2.IMWRITE_PNG_COMPRESSION, 1])[1].tobytes()).decode('ascii')
                                 # print(jpeg_frame)
 
                             if rawname.split(' ')[0] == 'unknown':
-                                name = name
+                                name = rawname
                                 surname = ''
                             else:
                                 aux = rawname.split('_')
@@ -104,7 +106,7 @@ class Person2DB(threading.Thread):
                                                         set__likelihood=likelihood)
                         else:
                             # reg mode
-                            name, surname= elem
+                            name, surname = elem
                             self.addperson2dbregmode(name=name, surname=surname)
                         # time.sleep(0.05)
                         print('[INFO] Connection succed')
@@ -114,9 +116,11 @@ class Person2DB(threading.Thread):
                         # Falta fijar la excepcion
                         print('[INFO] Connection fails')
                         c += 1
-                        time.sleep(0.05)
+                        time.sleep(0.01)
                         waiting2connect = False
-                        if c > 5:
+                        if elem:
+                            self.queue.appendleft(elem)
+                        if c > 15:
                             waiting2connect = True
 
 
