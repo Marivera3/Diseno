@@ -29,7 +29,7 @@ class Person2DB(threading.Thread):
             self.stopped = False
             self.likelihood, self.pic, self.rec, self.out, self.inn, self.name = paquete
             # self.likelihood, self.pic, self.rec, self.out, self.name = paquete
-            self.timenow = dt.datetime.utcnow()
+            self.timenow = dt.datetime.now()
 
 
         def addperson2db(self, name, surname, is_recongized, last_in, picture, likelihood):
@@ -56,7 +56,7 @@ class Person2DB(threading.Thread):
                 jpeg_frame = ""
             else:
                 # jpeg_frame = pickle.dumps(cv2.imencode('.jpg', self.pic, [cv2.IMWRITE_JPEG_QUALITY, 70])[1].tostring())
-                jpeg_frame = base64.b64encode(cv2.imencode('.png', self.pic, [cv2.IMWRITE_PNG_COMPRESSION, 3])[1].tobytes()).decode('ascii')
+                jpeg_frame = base64.b64encode(cv2.imencode('.png', self.pic, [cv2.IMWRITE_PNG_COMPRESSION, 1])[1].tobytes()).decode('ascii')
                 # print(jpeg_frame)
             while not connected:
 
@@ -86,7 +86,7 @@ class Person2DB(threading.Thread):
                         if PersonRasp.objects():
                             for doc in PersonRasp.objects():
                                 if doc['name'] == name and doc['surname'] == surname:
-                                    doc.update(set__last_out=datetime.datetime.utcnow(),
+                                    doc.update(set__last_out=self.timenow,
                                                 set__is_recongized=self.rec,
                                                 set__likelihood=self.likelihood)
 
