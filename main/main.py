@@ -28,6 +28,7 @@ import dlib
 import numpy as np
 import imutils
 import mongoengine as me
+from gpiozero import LED
 from pymongo import MongoClient
 from subprocess import Popen, PIPE
 from PIL import Image
@@ -60,6 +61,7 @@ def addperson2db(name, surname, is_recongized, last_in, last_out, picture, likeh
 
 # PARAMETERS
 
+reg_led = LED(17)
 D_PROB = 0.5 # Probability value for detection
 R_PROB = 0.65 # Probability value for recognition
 REG_NUM = 30 # Number of frames for registration
@@ -122,7 +124,8 @@ print('[INFO] Starting saving Video...')
 SV.start()
 
 # Register mode
-reg_mode = RegMode('192.168.0.25', 8099)
+#reg_mode = RegMode('192.168.0.25', 8099)
+reg_mode = RegMode('127.0.0.1', 8099)
 reg_mode.start()
 Register_counter = 0
 Register_buffer = []
@@ -142,7 +145,7 @@ fps_count = FPS().start()
 while True:
     # Retrieve frame
     frame = video_getter.frame.copy()
-    frame = imutils.resize(frame, width=500)
+    frame = imutils.resize(frame, width=300)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     (H, W) = frame.shape[:2]
     rects = []
@@ -150,21 +153,26 @@ while True:
     # Rutina de registro
     if reg_mode is not None:
         if reg_mode.Register_mode:
+            reg_led.on()
             detections = extract_faces(detector, frame, D_PROB)
             if len(detections[1]) == 1:
                 Register_buffer.append(detections)
                 Register_counter += 1
             if Register_counter > REG_NUM:
-                Person2DBv3(reg_mode.name, reg_mode.surname).start()
+                reg_led.off()
+                print("Processing face data")
+                Person2DBv3([reg_mode.name, reg_mode.surname]).start()
                 for item in Register_buffer:
                     vec_actual = get_embeddings(item[0], item[1], item[2], embedder, sp, fa)
                     if vec_actual is not None:
                         data['embeddings'].append(vec_actual.flatten())
-                        data['names'].append(reg_mode.Register_id)
+                        data['names'].append(reg_mode.name + '_' + reg_mode.surname)
                 Register_counter = 0
                 Register_buffer = []
                 reg_mode.reset()
                 recognizer, le = train(data)
+                with open("./output/embeddingsNew.pickle", "wb") as file:
+                    pickle.dump(data, file)
             print(f'frame {Register_counter}')
             continue
 
@@ -244,11 +252,13 @@ while True:
 
             # Si es que salio
             # check to see if the object has been counted or not
+            '''
             print(f'to.counted: {to.counted}')
             print(f'to.block_n: {to.block_n}')
             print(f'to.sent: {to.sent}')
             print(f'to.device: {to.device}')
             print(f'direction: {direction}')
+            '''
             print(f'centroid: {centroid}')
             if not to.counted and direction > 30  and centroid[0] > W//2 and to.device == 1:
                 to.inn = True
@@ -278,8 +288,7 @@ while True:
             print((paquete[0], paquete[2:]))
             Person2DB(paquete).start()
     for item in face_data:
-        pass
-        #print('Reconocido ',item[4])
+        print('Detectado: ',item[4])
 
     #fps_count.update()
     cpt += 1

@@ -16,14 +16,13 @@ import cv2
 import os
 
 def extract_faces(detector, frame, d_conf):
-        frame = imutils.resize(frame, width=500)
+        # frame = imutils.resize(frame, width=500)
         # frame = vs.read()
 
         (h, w) = frame.shape[:2]
         size_array = np.array([w, h, w, h])
 
-        imageBlob = cv2.dnn.blobFromImage(
-                cv2.resize(frame, (300, 300)), 1.0, (300, 300),
+        imageBlob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300),
                 (104.0, 177.0, 123.0), swapRB=False, crop=False)
 
         detector.setInput(imageBlob)
@@ -53,14 +52,13 @@ def get_embeddings(frame, indexes, boxes, embedder, shape_pred, facealigner):
 
 def get_faces(detector, embedder, shape_pred, frame, d_conf, facealigner):
         out_faces = []
-        frame = imutils.resize(frame, width=500)
+        # frame = imutils.resize(frame, width=500)
         # frame = vs.read()
 
         (h, w) = frame.shape[:2]
         size_array = np.array([w, h, w, h])
 
-        imageBlob = cv2.dnn.blobFromImage(
-                cv2.resize(frame, (300, 300)), 1.0, (300, 300),
+        imageBlob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300),
                 (104.0, 177.0, 123.0), swapRB=False, crop=False)
 
         detector.setInput(imageBlob)
