@@ -79,11 +79,11 @@ class Person2DB(threading.Thread):
                                 jpeg_frame = ""
                             else:
                                 # jpeg_frame = pickle.dumps(cv2.imencode('.jpg', self.pic, [cv2.IMWRITE_JPEG_QUALITY, 70])[1].tostring())
-                                jpeg_frame = base64.b64encode(cv2.imencode('.png', self.pic, [cv2.IMWRITE_PNG_COMPRESSION, 1])[1].tobytes()).decode('ascii')
+                                jpeg_frame = base64.b64encode(cv2.imencode('.png', pic, [cv2.IMWRITE_PNG_COMPRESSION, 1])[1].tobytes()).decode('ascii')
                                 # print(jpeg_frame)
 
                             if rawname.split(' ')[0] == 'unknown':
-                                name = name
+                                name = rawname
                                 surname = ''
                             else:
                                 aux = rawname.split('_')

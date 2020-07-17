@@ -133,16 +133,17 @@ out_prev = 0
 cpt=0;
 fps_count = FPS().start()
 while True:
-    # Retrieve frame
-    frame = video_getter.frame.copy()
-    frame = imutils.resize(frame, width=300)
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    (H, W) = frame.shape[:2]
-    rects = []
 
     # Rutina de registro
     if reg_mode is not None:
         if reg_mode.Register_mode:
+            # Retrieve frame
+            frame = video_getter.frame.copy()
+            frame = imutils.resize(frame, width=800)
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            (H, W) = frame.shape[:2]
+            rects = []
+
             reg_led.on()
             detections = extract_faces(detector, frame, D_PROB)
             if len(detections[1]) == 1:
@@ -153,9 +154,9 @@ while True:
                 print("Processing face data")
                 p2db.queue.append([reg_mode.name, reg_mode.surname])
                 for item in Register_buffer:
-                    vec_actual = get_embeddings(item[0], item[1], item[2], embedder, sp, fa)
+                    vec_actual = get_embeddings(item[0], item[1], item[2], embedder, sp)
                     if vec_actual is not None:
-                        data['embeddings'].append(vec_actual.flatten())
+                        data['embeddings'].append(vec_actual)
                         data['names'].append(reg_mode.name + '_' + reg_mode.surname)
                 Register_counter = 0
                 Register_buffer = []
@@ -189,6 +190,13 @@ while True:
             print(f'frame {Register_counter}')
             continue
     '''
+
+    # Retrieve frame
+    frame = video_getter.frame.copy()
+    frame = imutils.resize(frame, width=500)
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    (H, W) = frame.shape[:2]
+    rects = []
 
     if cpt % skipped_frames == 0:
         recon = []

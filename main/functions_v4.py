@@ -35,19 +35,16 @@ def extract_faces(detector, frame, d_conf):
         lista = [frame, indexes, boxes]
         return lista
 
-def get_embeddings(frame, indexes, boxes, embedder, shape_pred, facealigner):
+def get_embeddings(frame, indexes, boxes, embedder, shape_pred):
         coords = boxes.astype("int")
         i = indexes[0]
         (startX, startY, endX, endY) = coords[i]
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
         rect = dlib.rectangle(startX, startY, endX, endY)
 
-        face = facealigner.align(frame, gray, rect)
-
         shape = shape_pred(frame, rect)
-        vec = np.asarray(embedder.compute_face_descriptor(frame, shape)).reshape(1, -1)
+        #vec = np.asarray(embedder.compute_face_descriptor(frame, shape)).reshape(1, -1)
+        vec = embedder.compute_face_descriptor(frame, shape)
         return vec
 
 def get_faces(detector, embedder, shape_pred, frame, d_conf, facealigner):
@@ -96,6 +93,7 @@ def recognize(vec, recognizer, le, r_conf=0.65):
         preds = recognizer.predict_proba(vec)[0]
         j = np.argmax(preds)
         proba = preds[j]
+        print(f"probabilidad: {proba}")
         if proba > r_conf:
                 name = le.classes_[j]
         else:
